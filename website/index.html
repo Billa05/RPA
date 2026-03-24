@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CertifyHub — Government Certificate Portal</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-mesh"></div>
+    <div class="floating-shapes">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+        <div class="shape shape-3"></div>
+        <div class="shape shape-4"></div>
+        <div class="shape shape-5"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="#" class="logo" onclick="showPage('home')">
+                <div class="logo-icon">
+                    <i class="fas fa-certificate"></i>
+                </div>
+                <span class="logo-text">Certify<span class="accent">Hub</span></span>
+            </a>
+            <div class="nav-links">
+                <a href="#" class="nav-link active" data-page="home" onclick="showPage('home')">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="#" class="nav-link" data-page="apply" onclick="showPage('apply')">
+                    <i class="fas fa-file-alt"></i> Apply
+                </a>
+                <a href="#" class="nav-link" data-page="track" onclick="showPage('track')">
+                    <i class="fas fa-search"></i> Track
+                </a>
+                <a href="#" class="nav-link" data-page="admin" onclick="showPage('admin')">
+                    <i class="fas fa-shield-alt"></i> Admin
+                </a>
+                <a href="#" class="nav-link" data-page="download" onclick="showPage('download')">
+                    <i class="fas fa-download"></i> Download
+                </a>
+            </div>
+            <div class="nav-actions">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="showPage('apply')">
+                    Get Started <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <button class="hamburger" onclick="toggleMenu()">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#" onclick="showPage('home'); toggleMenu()"><i class="fas fa-home"></i> Home</a>
+        <a href="#" onclick="showPage('apply'); toggleMenu()"><i class="fas fa-file-alt"></i> Apply</a>
+        <a href="#" onclick="showPage('track'); toggleMenu()"><i class="fas fa-search"></i> Track</a>
+        <a href="#" onclick="showPage('admin'); toggleMenu()"><i class="fas fa-shield-alt"></i> Admin</a>
+        <a href="#" onclick="showPage('download'); toggleMenu()"><i class="fas fa-download"></i> Download</a>
+    </div>
+
+    <!-- ==================== HOME PAGE ==================== -->
+    <section class="page active" id="page-home">
+        <!-- Hero -->
+        <div class="hero">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <i class="fas fa-bolt"></i> Government Digital Services
+                </div>
+                <h1 class="hero-title">
+                    Your Certificates,<br>
+                    <span class="gradient-text">Simplified.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    Apply for government certificates online. Upload documents, get verified instantly,
+                    and download your certified documents — all from one portal.
+                </p>
+                <div class="hero-actions">
+                    <button class="btn btn-primary btn-lg" onclick="showPage('apply')">
+                        <i class="fas fa-rocket"></i> Apply Now
+                    </button>
+                    <button class="btn btn-glass btn-lg" onclick="showPage('track')">
+                        <i class="fas fa-search"></i> Track Application
+                    </button>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number" data-count="12847">0</span>
+                        <span class="stat-label">Certificates Issued</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-count="99">0</span>
+                        <span class="stat-label">% Verification Rate</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-number" data-count="24">0</span>
+                        <span class="stat-label">Hour Processing</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="certificate-preview">
+                    <div class="cert-header">
+                        <div class="cert-seal"><i class="fas fa-award"></i></div>
+                        <h3>Certificate of Verification</h3>
+                        <p>Government of India</p>
+                    </div>
+                    <div class="cert-body">
+                        <div class="cert-line"></div>
+                        <div class="cert-line short"></div>
+                        <div class="cert-line"></div>
+                        <div class="cert-line medium"></div>
+                        <div class="cert-qr">
+                            <i class="fas fa-qrcode"></i>
+                        </div>
+                    </div>
+                    <div class="cert-stamp">
+                        <i class="fas fa-check-circle"></i> VERIFIED
+                    </div>
+                </div>
+                <div class="floating-cards">
+                    <div class="float-card fc-1">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Secure</span>
+                    </div>
+                    <div class="float-card fc-2">
+                        <i class="fas fa-bolt"></i>
+                        <span>Instant</span>
+                    </div>
+                    <div class="float-card fc-3">
+                        <i class="fas fa-check-double"></i>
+                        <span>Verified</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Certificate Types -->
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-tag"><i class="fas fa-layer-group"></i> Services</span>
+                <h2>Available Certificates</h2>
+                <p>Choose from a wide range of government-issued certificates</p>
+            </div>
+            <div class="cert-grid">
+                <div class="cert-card" onclick="selectCertType('birth')">
+                    <div class="cert-card-icon birth"><i class="fas fa-baby"></i></div>
+                    <h3>Birth Certificate</h3>
+                    <p>Official record of birth registration</p>
+                    <div class="cert-card-meta">
+                        <span><i class="fas fa-clock"></i> 2-3 days</span>
+                        <span><i class="fas fa-file"></i> 3 docs</span>
+                    </div>
+                </div>
+                <div class="cert-card" onclick="selectCertType('income')">
+                    <div class="cert-card-icon income"><i class="fas fa-coins"></i></div>
+                    <h3>Income Certificate</h3>
+                    <p>Proof of annual income verification</p>
+                    <div class="cert-card-meta">
+                        <span><i class="fas fa-clock"></i> 1-2 days</span>
+                        <span><i class="fas fa-file"></i> 4 docs</span>
+                    </div>
+                </div>
+                <div class="cert-card" onclick="selectCertType('domicile')">
+                    <div class="cert-card-icon domicile"><i class="fas fa-home"></i></div>
+                    <h3>Domicile Certificate</h3>
+                    <p>Proof of residential status</p>
+                    <div class="cert-card-meta">
+                        <span><i class="fas fa-clock"></i> 3-5 days</span>
+                        <span><i class="fas fa-file"></i> 5 docs</span>
+                    </div>
+                </div>
+                <div class="cert-card" onclick="selectCertType('caste')">
+                    <div class="cert-card-icon caste"><i class="fas fa-users"></i></div>
+                    <h3>Caste Certificate</h3>
+                    <p>Official caste/tribe verification</p>
+                    <div class="cert-card-meta">
+                        <span><i class="fas fa-clock"></i> 5-7 days</span>
+                        <span><i class="fas fa-file"></i> 4 docs</span>
+                    </div>
+                </div>
+                <div class="cert-card" onclick="selectCertType('character')">
+                    <div class="cert-card-icon character"><i class="fas fa-user-check"></i></div>
+                    <h3>Character Certificate</h3>
+                    <p>Good conduct & character proof</p>
+                    <div class="cert-card-meta">
+                        <span><i class="fas fa-clock"></i> 1-2 days</span>
+                        <span><i class="fas fa-file"></i> 2 docs</span>
+                    </div>
+                </div>
+                <div class="cert-card" onclick="selectCertType('marriage')">
+                    <div class="cert-card-icon marriage"><i class="fas fa-heart"></i></div>
+                    <h3>Marriage Certificate</h3>
+                    <p>Legal marriage registration</p>
+                    <div class="cert-card-meta">
+                        <span><i class="fas fa-clock"></i> 3-5 days</span>
+                        <span><i class="fas fa-file"></i> 6 docs</span>
+                    </div>
+                </div>
+                <div class="cert-card" onclick="selectCertType('death')">
+                    <div class="cert-card-icon death"><i class="fas fa-cross"></i></div>
+                    <h3>Death Certificate</h3>
+                    <p>Official death registration record</p>
+                    <div class="cert-card-meta">
+                        <span><i class="fas fa-clock"></i> 2-3 days</span>
+                        <span><i class="fas fa-file"></i> 3 docs</span>
+                    </div>
+                </div>
+                <div class="cert-card" onclick="selectCertType('education')">
+                    <div class="cert-card-icon education"><i class="fas fa-graduation-cap"></i></div>
+                    <h3>Education Certificate</h3>
+                    <p>Degree & qualification verification</p>
+                    <div class="cert-card-meta">
+                        <span><i class="fas fa-clock"></i> 5-7 days</span>
+                        <span><i class="fas fa-file"></i> 5 docs</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How it works -->
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-tag"><i class="fas fa-magic"></i> Process</span>
+                <h2>How It Works</h2>
+                <p>Simple 4-step automated process powered by RPA</p>
+            </div>
+            <div class="steps-timeline">
+                <div class="step-item">
+                    <div class="step-number">01</div>
+                    <div class="step-content">
+                        <div class="step-icon"><i class="fas fa-hand-pointer"></i></div>
+                        <h3>Select Certificate</h3>
+                        <p>Choose the type of certificate you need from our catalog</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-item">
+                    <div class="step-number">02</div>
+                    <div class="step-content">
+                        <div class="step-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                        <h3>Upload Documents</h3>
+                        <p>Upload required supporting documents for verification</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-item">
+                    <div class="step-number">03</div>
+                    <div class="step-content">
+                        <div class="step-icon"><i class="fas fa-robot"></i></div>
+                        <h3>RPA Verification</h3>
+                        <p>UiPath bot verifies your documents against our database</p>
+                    </div>
+                </div>
+                <div class="step-connector"></div>
+                <div class="step-item">
+                    <div class="step-number">04</div>
+                    <div class="step-content">
+                        <div class="step-icon"><i class="fas fa-download"></i></div>
+                        <h3>Download Certificate</h3>
+                        <p>Get your verified and digitally signed certificate</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="section-container">
+            <div class="section-header">
+                <span class="section-tag"><i class="fas fa-star"></i> Features</span>
+                <h2>Why CertifyHub?</h2>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-robot"></i></div>
+                    <h3>RPA Powered</h3>
+                    <p>UiPath bots handle verification, validation, and certificate generation automatically</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-lock"></i></div>
+                    <h3>Blockchain Secured</h3>
+                    <p>Every certificate is tamper-proof with unique hash verification</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-qrcode"></i></div>
+                    <h3>QR Verification</h3>
+                    <p>Scan QR code on any certificate to instantly verify authenticity</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-bell"></i></div>
+                    <h3>Real-time Tracking</h3>
+                    <p>Live status updates via SMS and email at every stage</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-language"></i></div>
+                    <h3>Multi-language</h3>
+                    <p>Available in English, Hindi, and regional languages</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <h3>Mobile Friendly</h3>
+                    <p>Apply and track from any device, anywhere, anytime</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="logo">
+                        <div class="logo-icon"><i class="fas fa-certificate"></i></div>
+                        <span class="logo-text">Certify<span class="accent">Hub</span></span>
+                    </div>
+                    <p>Government Digital Certificate Portal — Powered by UiPath RPA</p>
+                </div>
+                <div class="footer-links">
+                    <div class="footer-col">
+                        <h4>Services</h4>
+                        <a href="#">Birth Certificate</a>
+                        <a href="#">Income Certificate</a>
+                        <a href="#">Domicile Certificate</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Support</h4>
+                        <a href="#">Help Center</a>
+                        <a href="#">Contact Us</a>
+                        <a href="#">FAQs</a>
+                    </div>
+                    <div class="footer-col">
+                        <h4>Legal</h4>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Disclaimer</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 CertifyHub. All rights reserved. | Built for UiPath RPA Demonstration</p>
+            </div>
+        </footer>
+    </section>
+
+    <!-- ==================== APPLY PAGE ==================== -->
+    <section class="page" id="page-apply">
+        <div class="page-container">
+            <div class="page-header">
+                <h1><i class="fas fa-file-alt"></i> Apply for Certificate</h1>
+                <p>Fill in your details and upload required documents</p>
+            </div>
+
+            <!-- Progress Steps -->
+            <div class="wizard-progress">
+                <div class="wizard-step active" data-step="1">
+                    <div class="wizard-dot"><i class="fas fa-user"></i></div>
+                    <span>Personal Info</span>
+                </div>
+                <div class="wizard-line"></div>
+                <div class="wizard-step" data-step="2">
+                    <div class="wizard-dot"><i class="fas fa-certificate"></i></div>
+                    <span>Certificate Type</span>
+                </div>
+                <div class="wizard-line"></div>
+                <div class="wizard-step" data-step="3">
+                    <div class="wizard-dot"><i class="fas fa-cloud-upload-alt"></i></div>
+                    <span>Upload Docs</span>
+                </div>
+                <div class="wizard-line"></div>
+                <div class="wizard-step" data-step="4">
+                    <div class="wizard-dot"><i class="fas fa-check-circle"></i></div>
+                    <span>Review & Submit</span>
+                </div>
+            </div>
+
+            <!-- Step 1: Personal Information -->
+            <div class="wizard-panel active" id="step-1">
+                <div class="form-card">
+                    <h2><i class="fas fa-user-circle"></i> Personal Information</h2>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label><i class="fas fa-user"></i> Full Name *</label>
+                            <input type="text" id="fullName" placeholder="Enter your full name" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-envelope"></i> Email Address *</label>
+                            <input type="email" id="email" placeholder="your@email.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-phone"></i> Phone Number *</label>
+                            <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-id-card"></i> Aadhaar Number *</label>
+                            <input type="text" id="aadhaar" placeholder="XXXX XXXX XXXX" maxlength="14" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-calendar"></i> Date of Birth *</label>
+                            <input type="date" id="dob" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-venus-mars"></i> Gender *</label>
+                            <select id="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group full-width">
+                            <label><i class="fas fa-map-marker-alt"></i> Full Address *</label>
+                            <textarea id="address" placeholder="Enter your complete address" rows="3" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-city"></i> City *</label>
+                            <input type="text" id="city" placeholder="City" required>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-map"></i> State *</label>
+                            <select id="state" required>
+                                <option value="">Select State</option>
+                                <option value="andhra_pradesh">Andhra Pradesh</option>
+                                <option value="bihar">Bihar</option>
+                                <option value="delhi">Delhi</option>
+                                <option value="gujarat">Gujarat</option>
+                                <option value="karnataka">Karnataka</option>
+                                <option value="kerala">Kerala</option>
+                                <option value="maharashtra">Maharashtra</option>
+                                <option value="rajasthan">Rajasthan</option>
+                                <option value="tamil_nadu">Tamil Nadu</option>
+                                <option value="uttar_pradesh">Uttar Pradesh</option>
+                                <option value="west_bengal">West Bengal</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label><i class="fas fa-hashtag"></i> PIN Code *</label>
+                            <input type="text" id="pincode" placeholder="XXXXXX" maxlength="6" required>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button class="btn btn-primary btn-lg" onclick="nextStep(2)">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Certificate Type -->
+            <div class="wizard-panel" id="step-2">
+                <div class="form-card">
+                    <h2><i class="fas fa-certificate"></i> Select Certificate Type</h2>
+                    <div class="cert-type-grid">
+                        <label class="cert-type-option">
+                            <input type="radio" name="certType" value="birth">
+                            <div class="cert-type-card">
+                                <i class="fas fa-baby"></i>
+                                <span>Birth Certificate</span>
+                            </div>
+                        </label>
+                        <label class="cert-type-option">
+                            <input type="radio" name="certType" value="income">
+                            <div class="cert-type-card">
+                                <i class="fas fa-coins"></i>
+                                <span>Income Certificate</span>
+                            </div>
+                        </label>
+                        <label class="cert-type-option">
+                            <input type="radio" name="certType" value="domicile">
+                            <div class="cert-type-card">
+                                <i class="fas fa-home"></i>
+                                <span>Domicile Certificate</span>
+                            </div>
+                        </label>
+                        <label class="cert-type-option">
+                            <input type="radio" name="certType" value="caste">
+                            <div class="cert-type-card">
+                                <i class="fas fa-users"></i>
+                                <span>Caste Certificate</span>
+                            </div>
+                        </label>
+                        <label class="cert-type-option">
+                            <input type="radio" name="certType" value="character">
+                            <div class="cert-type-card">
+                                <i class="fas fa-user-check"></i>
+                                <span>Character Certificate</span>
+                            </div>
+                        </label>
+                        <label class="cert-type-option">
+                            <input type="radio" name="certType" value="marriage">
+                            <div class="cert-type-card">
+                                <i class="fas fa-heart"></i>
+                                <span>Marriage Certificate</span>
+                            </div>
+                        </label>
+                        <label class="cert-type-option">
+                            <input type="radio" name="certType" value="death">
+                            <div class="cert-type-card">
+                                <i class="fas fa-cross"></i>
+                                <span>Death Certificate</span>
+                            </div>
+                        </label>
+                        <label class="cert-type-option">
+                            <input type="radio" name="certType" value="education">
+                            <div class="cert-type-card">
+                                <i class="fas fa-graduation-cap"></i>
+                                <span>Education Certificate</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Dynamic requirements info -->
+                    <div class="requirements-box" id="requirementsBox" style="display:none;">
+                        <h3><i class="fas fa-info-circle"></i> Required Documents</h3>
+                        <ul id="requirementsList"></ul>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-outline btn-lg" onclick="prevStep(1)">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-primary btn-lg" onclick="nextStep(3)">
+                            Continue <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Upload Documents -->
+            <div class="wizard-panel" id="step-3">
+                <div class="form-card">
+                    <h2><i class="fas fa-cloud-upload-alt"></i> Upload Documents</h2>
+                    <p class="form-description">Upload clear scanned copies or photos of the required documents</p>
+
+                    <div id="uploadZones">
+                        <!-- Dynamically populated based on certificate type -->
+                    </div>
+
+                    <!-- Aadhaar upload (always required) -->
+                    <div class="upload-zone" id="zone-aadhaar">
+                        <div class="upload-area" onclick="triggerUpload('aadhaar')" ondrop="handleDrop(event, 'aadhaar')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                            <input type="file" id="file-aadhaar" accept=".pdf,.jpg,.jpeg,.png" onchange="handleFileSelect(this, 'aadhaar')" hidden>
+                            <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                            <h4>Aadhaar Card</h4>
+                            <p>Drag & drop or click to upload</p>
+                            <span class="upload-formats">PDF, JPG, PNG — Max 5MB</span>
+                        </div>
+                        <div class="upload-preview" id="preview-aadhaar" style="display:none;">
+                            <div class="preview-info">
+                                <i class="fas fa-file-alt"></i>
+                                <span class="preview-name"></span>
+                                <span class="preview-size"></span>
+                            </div>
+                            <div class="preview-status">
+                                <span class="status-badge pending"><i class="fas fa-clock"></i> Pending</span>
+                            </div>
+                            <button class="btn btn-sm btn-danger" onclick="removeFile('aadhaar')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Photo upload (always required) -->
+                    <div class="upload-zone" id="zone-photo">
+                        <div class="upload-area" onclick="triggerUpload('photo')" ondrop="handleDrop(event, 'photo')" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+                            <input type="file" id="file-photo" accept=".jpg,.jpeg,.png" onchange="handleFileSelect(this, 'photo')" hidden>
+                            <div class="upload-icon"><i class="fas fa-camera"></i></div>
+                            <h4>Passport Photo</h4>
+                            <p>Drag & drop or click to upload</p>
+                            <span class="upload-formats">JPG, PNG — Max 2MB</span>
+                        </div>
+                        <div class="upload-preview" id="preview-photo" style="display:none;">
+                            <div class="preview-info">
+                                <i class="fas fa-file-image"></i>
+                                <span class="preview-name"></span>
+                                <span class="preview-size"></span>
+                            </div>
+                            <div class="preview-status">
+                                <span class="status-badge pending"><i class="fas fa-clock"></i> Pending</span>
+                            </div>
+                            <button class="btn btn-sm btn-danger" onclick="removeFile('photo')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-outline btn-lg" onclick="prevStep(2)">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-primary btn-lg" onclick="nextStep(4)">
+                            Review & Submit <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Review & Submit -->
+            <div class="wizard-panel" id="step-4">
+                <div class="form-card">
+                    <h2><i class="fas fa-check-circle"></i> Review & Submit</h2>
+
+                    <div class="review-sections">
+                        <div class="review-section">
+                            <h3><i class="fas fa-user"></i> Personal Details</h3>
+                            <div class="review-grid" id="reviewPersonal"></div>
+                        </div>
+                        <div class="review-section">
+                            <h3><i class="fas fa-certificate"></i> Certificate Details</h3>
+                            <div class="review-grid" id="reviewCert"></div>
+                        </div>
+                        <div class="review-section">
+                            <h3><i class="fas fa-file-alt"></i> Uploaded Documents</h3>
+                            <div class="review-docs" id="reviewDocs"></div>
+                        </div>
+                    </div>
+
+                    <div class="consent-box">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="consent">
+                            <span class="checkmark"></span>
+                            I hereby declare that the information provided is true and correct. I understand that providing false information may result in rejection and legal action.
+                        </label>
+                    </div>
+
+                    <div class="form-actions">
+                        <button class="btn btn-outline btn-lg" onclick="prevStep(3)">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </button>
+                        <button class="btn btn-success btn-lg" onclick="submitApplication()" id="submitBtn">
+                            <i class="fas fa-paper-plane"></i> Submit Application
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Success Modal -->
+                <div class="modal" id="successModal">
+                    <div class="modal-content success-modal">
+                        <div class="success-animation">
+                            <div class="success-circle">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                        <h2>Application Submitted!</h2>
+                        <p>Your application has been received and is being processed.</p>
+                        <div class="tracking-id-box">
+                            <span class="label">Your Tracking ID</span>
+                            <span class="tracking-id" id="trackingId"></span>
+                            <button class="btn btn-sm btn-outline" onclick="copyTrackingId()">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <p class="hint">Save this ID to track your application status</p>
+                        <div class="modal-actions">
+                            <button class="btn btn-primary" onclick="showPage('track'); closeModal()">
+                                <i class="fas fa-search"></i> Track Application
+                            </button>
+                            <button class="btn btn-outline" onclick="showPage('home'); closeModal()">
+                                <i class="fas fa-home"></i> Go Home
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== TRACK PAGE ==================== -->
+    <section class="page" id="page-track">
+        <div class="page-container">
+            <div class="page-header">
+                <h1><i class="fas fa-search"></i> Track Application</h1>
+                <p>Enter your tracking ID to check application status</p>
+            </div>
+
+            <div class="track-search">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="trackInput" placeholder="Enter Tracking ID (e.g., CERT-2026-XXXXX)">
+                    <button class="btn btn-primary" onclick="trackApplication()">
+                        <i class="fas fa-arrow-right"></i> Track
+                    </button>
+                </div>
+            </div>
+
+            <div id="trackResult" style="display:none;">
+                <div class="track-card">
+                    <div class="track-header">
+                        <div class="track-info">
+                            <h2 id="trackName"></h2>
+                            <p id="trackType"></p>
+                        </div>
+                        <div class="track-status" id="trackStatus"></div>
+                    </div>
+
+                    <div class="track-timeline" id="trackTimeline">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <div class="track-details">
+                        <div class="detail-row">
+                            <span class="detail-label">Application ID</span>
+                            <span class="detail-value" id="trackAppId"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Applied On</span>
+                            <span class="detail-value" id="trackDate"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Documents</span>
+                            <span class="detail-value" id="trackDocs"></span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label">Verification</span>
+                            <span class="detail-value" id="trackVerification"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Applications -->
+            <div class="recent-apps" id="recentApps">
+                <h3><i class="fas fa-history"></i> Recent Applications</h3>
+                <div class="apps-list" id="appsList">
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>No applications yet. <a href="#" onclick="showPage('apply')">Apply now</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== ADMIN PAGE ==================== -->
+    <section class="page" id="page-admin">
+        <div class="page-container">
+            <div class="page-header">
+                <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
+                <p>Document verification & application management</p>
+            </div>
+
+            <!-- Admin Login -->
+            <div id="adminLogin" class="admin-login">
+                <div class="form-card compact">
+                    <div class="admin-lock-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h2>Admin Access</h2>
+                    <p>Enter credentials to access the verification panel</p>
+                    <div class="form-group">
+                        <label><i class="fas fa-user"></i> Username</label>
+                        <input type="text" id="adminUser" placeholder="admin" value="admin">
+                    </div>
+                    <div class="form-group">
+                        <label><i class="fas fa-key"></i> Password</label>
+                        <input type="password" id="adminPass" placeholder="admin123" value="admin123">
+                    </div>
+                    <button class="btn btn-primary btn-lg full-width" onclick="adminLogin()">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <p class="hint">Demo: admin / admin123</p>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div id="adminDashboard" style="display:none;">
+                <div class="admin-stats">
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon blue"><i class="fas fa-file-alt"></i></div>
+                        <div class="admin-stat-info">
+                            <span class="admin-stat-number" id="statTotal">0</span>
+                            <span class="admin-stat-label">Total Applications</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon yellow"><i class="fas fa-clock"></i></div>
+                        <div class="admin-stat-info">
+                            <span class="admin-stat-number" id="statPending">0</span>
+                            <span class="admin-stat-label">Pending Review</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon green"><i class="fas fa-check-circle"></i></div>
+                        <div class="admin-stat-info">
+                            <span class="admin-stat-number" id="statApproved">0</span>
+                            <span class="admin-stat-label">Approved</span>
+                        </div>
+                    </div>
+                    <div class="admin-stat-card">
+                        <div class="admin-stat-icon red"><i class="fas fa-times-circle"></i></div>
+                        <div class="admin-stat-info">
+                            <span class="admin-stat-number" id="statRejected">0</span>
+                            <span class="admin-stat-label">Rejected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="admin-filters">
+                    <div class="filter-group">
+                        <select id="filterStatus" onchange="filterApplications()">
+                            <option value="all">All Status</option>
+                            <option value="pending">Pending</option>
+                            <option value="under_review">Under Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <select id="filterType" onchange="filterApplications()">
+                            <option value="all">All Types</option>
+                            <option value="birth">Birth</option>
+                            <option value="income">Income</option>
+                            <option value="domicile">Domicile</option>
+                            <option value="caste">Caste</option>
+                            <option value="character">Character</option>
+                            <option value="marriage">Marriage</option>
+                            <option value="death">Death</option>
+                            <option value="education">Education</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="refreshAdmin()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+
+                <!-- Applications Table -->
+                <div class="admin-table-wrapper">
+                    <table class="admin-table" id="adminTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Applicant</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Documents</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Verification Modal -->
+                <div class="modal" id="verifyModal">
+                    <div class="modal-content verify-modal">
+                        <button class="modal-close" onclick="closeVerifyModal()">&times;</button>
+                        <h2><i class="fas fa-search-plus"></i> Document Verification</h2>
+                        <div id="verifyContent"></div>
+                        <div class="verify-actions">
+                            <div class="form-group">
+                                <label>Verification Notes</label>
+                                <textarea id="verifyNotes" placeholder="Add notes about the verification..." rows="3"></textarea>
+                            </div>
+                            <div class="verify-buttons">
+                                <button class="btn btn-success btn-lg" onclick="verifyAction('approved')">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn btn-danger btn-lg" onclick="verifyAction('rejected')">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== DOWNLOAD PAGE ==================== -->
+    <section class="page" id="page-download">
+        <div class="page-container">
+            <div class="page-header">
+                <h1><i class="fas fa-download"></i> Download Certificate</h1>
+                <p>Enter your tracking ID to download your approved certificate</p>
+            </div>
+
+            <div class="track-search">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="downloadInput" placeholder="Enter Tracking ID">
+                    <button class="btn btn-primary" onclick="fetchCertificate()">
+                        <i class="fas fa-search"></i> Find
+                    </button>
+                </div>
+            </div>
+
+            <div id="downloadResult" style="display:none;">
+                <div class="download-card">
+                    <div class="download-preview" id="certPreview">
+                        <!-- Certificate preview rendered here -->
+                    </div>
+                    <div class="download-actions">
+                        <button class="btn btn-primary btn-lg" onclick="downloadCert('pdf')">
+                            <i class="fas fa-file-pdf"></i> Download PDF
+                        </button>
+                        <button class="btn btn-outline btn-lg" onclick="downloadCert('print')">
+                            <i class="fas fa-print"></i> Print
+                        </button>
+                        <button class="btn btn-glass btn-lg" onclick="verifyCertQR()">
+                            <i class="fas fa-qrcode"></i> Verify QR
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

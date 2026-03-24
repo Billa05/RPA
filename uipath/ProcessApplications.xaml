@@ -1,0 +1,245 @@
+<Activity mc:Ignorable="sap sap2010 sads" x:Class="ProcessApplications"
+  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
+  xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
+  xmlns:sads="http://schemas.microsoft.com/netfx/2010/xaml/activities/debugger"
+  xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
+  xmlns:ui="http://schemas.uipath.com/workflow/activities"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:json="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json">
+
+  <x:Members>
+    <x:Property Name="in_BaseURL" Type="InArgument(x:String)" />
+    <x:Property Name="in_WebsiteURL" Type="InArgument(x:String)" />
+    <x:Property Name="out_ProcessedCount" Type="OutArgument(x:Int32)" />
+    <x:Property Name="out_ApprovedCount" Type="OutArgument(x:Int32)" />
+    <x:Property Name="out_RejectedCount" Type="OutArgument(x:Int32)" />
+  </x:Members>
+
+  <Sequence DisplayName="Process All Pending Applications">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:String" Name="var_ApplicationsJSON" />
+      <Variable x:TypeArguments="json:JArray" Name="var_Applications" />
+      <Variable x:TypeArguments="x:String" Name="var_CurrentAppId" />
+      <Variable x:TypeArguments="x:String" Name="var_CurrentAppName" />
+      <Variable x:TypeArguments="x:String" Name="var_CurrentAppType" />
+      <Variable x:TypeArguments="x:String" Name="var_AadhaarNumber" />
+      <Variable x:TypeArguments="x:String" Name="var_AadhaarResponse" />
+      <Variable x:TypeArguments="x:String" Name="var_BatchVerifyResponse" />
+      <Variable x:TypeArguments="x:String" Name="var_VerifyResult" />
+      <Variable x:TypeArguments="x:Boolean" Name="var_AadhaarValid" Default="False" />
+      <Variable x:TypeArguments="x:Boolean" Name="var_DocsValid" Default="False" />
+      <Variable x:TypeArguments="x:Int32" Name="var_Processed" Default="0" />
+      <Variable x:TypeArguments="x:Int32" Name="var_Approved" Default="0" />
+      <Variable x:TypeArguments="x:Int32" Name="var_Rejected" Default="0" />
+    </Sequence.Variables>
+
+    <ui:LogMessage DisplayName="Log — Starting Application Processing" Level="Info"
+      Message="&quot;Step 4: Fetching and processing all pending applications...&quot;" />
+
+    <!-- ======= FETCH ALL PENDING APPLICATIONS ======= -->
+    <TryCatch DisplayName="Fetch Pending Applications">
+      <TryCatch.Try>
+        <Sequence DisplayName="GET Pending Apps">
+          <ui:HttpClient DisplayName="GET /api/applications?status=pending"
+            Method="GET"
+            RequestUrl="http://localhost:5000/api/applications?status=pending"
+            Result="[var_ApplicationsJSON]"
+            AcceptFormat="JSON"
+            Timeout="15000" />
+
+          <Assign DisplayName="Parse Applications JSON">
+            <Assign.To>
+              <OutArgument x:TypeArguments="json:JArray">[var_Applications]</OutArgument>
+            </Assign.To>
+            <Assign.Value>
+              <InArgument x:TypeArguments="json:JArray">[json:JArray.Parse(var_ApplicationsJSON)]</InArgument>
+            </Assign.Value>
+          </Assign>
+
+          <ui:LogMessage DisplayName="Log — Apps Fetched" Level="Info"
+            Message="[String.Format(&quot;✓ Found {0} pending applications&quot;, var_Applications.Count)]" />
+        </Sequence>
+      </TryCatch.Try>
+      <TryCatch.Catches>
+        <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+          <ActivityAction x:TypeArguments="s:Exception">
+            <ActivityAction.Argument>
+              <DelegateInArgument x:TypeArguments="s:Exception" Name="ex" />
+            </ActivityAction.Argument>
+            <Sequence>
+              <ui:LogMessage Level="Error" Message="&quot;✗ Failed to fetch applications: &quot; &amp; ex.Message" />
+              <Assign>
+                <Assign.To><OutArgument x:TypeArguments="json:JArray">[var_Applications]</OutArgument></Assign.To>
+                <Assign.Value><InArgument x:TypeArguments="json:JArray">[New json:JArray()]</InArgument></Assign.Value>
+              </Assign>
+            </Sequence>
+          </ActivityAction>
+        </Catch>
+      </TryCatch.Catches>
+    </TryCatch>
+
+    <!-- ======= LOOP THROUGH EACH APPLICATION ======= -->
+    <ForEach x:TypeArguments="json:JToken" DisplayName="For Each Pending Application" Values="[var_Applications]">
+      <ActivityAction x:TypeArguments="json:JToken">
+        <ActivityAction.Argument>
+          <DelegateInArgument x:TypeArguments="json:JToken" Name="app" />
+        </ActivityAction.Argument>
+
+        <TryCatch DisplayName="Process Single Application">
+          <TryCatch.Try>
+            <Sequence DisplayName="Verify and Decide on Application">
+
+              <!-- Extract app fields -->
+              <Assign DisplayName="Get App ID">
+                <Assign.To><OutArgument x:TypeArguments="x:String">[var_CurrentAppId]</OutArgument></Assign.To>
+                <Assign.Value><InArgument x:TypeArguments="x:String">[app("id").ToString()]</InArgument></Assign.Value>
+              </Assign>
+              <Assign DisplayName="Get App Name">
+                <Assign.To><OutArgument x:TypeArguments="x:String">[var_CurrentAppName]</OutArgument></Assign.To>
+                <Assign.Value><InArgument x:TypeArguments="x:String">[app("fullName").ToString()]</InArgument></Assign.Value>
+              </Assign>
+              <Assign DisplayName="Get App Type">
+                <Assign.To><OutArgument x:TypeArguments="x:String">[var_CurrentAppType]</OutArgument></Assign.To>
+                <Assign.Value><InArgument x:TypeArguments="x:String">[app("certType").ToString()]</InArgument></Assign.Value>
+              </Assign>
+              <Assign DisplayName="Get Aadhaar">
+                <Assign.To><OutArgument x:TypeArguments="x:String">[var_AadhaarNumber]</OutArgument></Assign.To>
+                <Assign.Value><InArgument x:TypeArguments="x:String">[app("aadhaar").ToString()]</InArgument></Assign.Value>
+              </Assign>
+
+              <ui:LogMessage DisplayName="Log — Processing App" Level="Info"
+                Message="[String.Format(&quot;─── Processing: {0} ({1}) — {2} ───&quot;, var_CurrentAppName, var_CurrentAppId, var_CurrentAppType)]" />
+
+              <!-- ===== STEP A: VERIFY AADHAAR ===== -->
+              <ui:LogMessage Level="Info" Message="&quot;  → Verifying Aadhaar number...&quot;" />
+
+              <InvokeWorkflowFile DisplayName="Verify Aadhaar"
+                WorkflowFileName="VerifyDocuments.xaml">
+                <InvokeWorkflowFile.Arguments>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_BaseURL">[in_BaseURL.ToString]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_AppId">[var_CurrentAppId]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_AadhaarNumber">[var_AadhaarNumber]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_ApplicantName">[var_CurrentAppName]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_DocumentsJSON">[app("documents").ToString()]</InArgument>
+                  <OutArgument x:TypeArguments="x:Boolean" x:Key="out_AadhaarValid">[var_AadhaarValid]</OutArgument>
+                  <OutArgument x:TypeArguments="x:Boolean" x:Key="out_DocsValid">[var_DocsValid]</OutArgument>
+                </InvokeWorkflowFile.Arguments>
+              </InvokeWorkflowFile>
+
+              <!-- ===== STEP B: DECIDE APPROVE OR REJECT ===== -->
+              <If DisplayName="Decision: Approve or Reject?" Condition="[var_AadhaarValid And var_DocsValid]">
+                <If.Then>
+                  <Sequence DisplayName="→ APPROVE Application">
+                    <ui:LogMessage Level="Info"
+                      Message="[String.Format(&quot;  ✓ APPROVING {0} — all checks passed&quot;, var_CurrentAppId)]" />
+
+                    <!-- Call verify API to approve -->
+                    <ui:HttpClient DisplayName="POST Approve"
+                      Method="POST"
+                      RequestUrl="[&quot;http://localhost:5000/api/applications/&quot; &amp; var_CurrentAppId &amp; &quot;/verify&quot;]"
+                      Result="[var_VerifyResult]"
+                      AcceptFormat="JSON"
+                      BodyFormat="application/json"
+                      Body="[&quot;{\&quot;status\&quot;:\&quot;approved\&quot;,\&quot;notes\&quot;:\&quot;Automated verification passed. Aadhaar confirmed. All documents valid.\&quot;,\&quot;verifiedBy\&quot;:\&quot;UiPath RPA Bot\&quot;}&quot;]" />
+
+                    <!-- Click approve on the website admin panel -->
+                    <TryCatch DisplayName="Try UI Approve">
+                      <TryCatch.Try>
+                        <Sequence DisplayName="Click Approve on Website">
+                          <ui:Click DisplayName="Click Review Button for this App"
+                            Target="{ui:Target Selector='&lt;html app=&quot;chrome.exe&quot; /&gt;&lt;webctrl tag=&quot;BUTTON&quot; innertext=&quot;*Review*&quot; /&gt;'}"
+                            ContinueOnError="True" />
+                          <Delay Duration="[TimeSpan.FromSeconds(1)]" />
+                          <ui:Click DisplayName="Click Approve in Modal"
+                            Target="{ui:Target Selector='&lt;html app=&quot;chrome.exe&quot; /&gt;&lt;webctrl tag=&quot;BUTTON&quot; innertext=&quot;*Approve*&quot; /&gt;'}"
+                            ContinueOnError="True" />
+                          <Delay Duration="[TimeSpan.FromSeconds(1)]" />
+                        </Sequence>
+                      </TryCatch.Try>
+                      <TryCatch.Catches>
+                        <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+                          <ActivityAction x:TypeArguments="s:Exception">
+                            <ActivityAction.Argument>
+                              <DelegateInArgument x:TypeArguments="s:Exception" Name="uiEx" />
+                            </ActivityAction.Argument>
+                            <ui:LogMessage Level="Warn" Message="&quot;  ⚠ UI approve click failed (API still succeeded): &quot; &amp; uiEx.Message" />
+                          </ActivityAction>
+                        </Catch>
+                      </TryCatch.Catches>
+                    </TryCatch>
+
+                    <Assign DisplayName="Increment Approved">
+                      <Assign.To><OutArgument x:TypeArguments="x:Int32">[var_Approved]</OutArgument></Assign.To>
+                      <Assign.Value><InArgument x:TypeArguments="x:Int32">[var_Approved + 1]</InArgument></Assign.Value>
+                    </Assign>
+                  </Sequence>
+                </If.Then>
+                <If.Else>
+                  <Sequence DisplayName="→ REJECT Application">
+                    <ui:LogMessage Level="Warn"
+                      Message="[String.Format(&quot;  ✗ REJECTING {0} — verification failed (Aadhaar={1}, Docs={2})&quot;, var_CurrentAppId, var_AadhaarValid, var_DocsValid)]" />
+
+                    <!-- Call verify API to reject -->
+                    <ui:HttpClient DisplayName="POST Reject"
+                      Method="POST"
+                      RequestUrl="[&quot;http://localhost:5000/api/applications/&quot; &amp; var_CurrentAppId &amp; &quot;/verify&quot;]"
+                      Result="[var_VerifyResult]"
+                      AcceptFormat="JSON"
+                      BodyFormat="application/json"
+                      Body="[&quot;{\&quot;status\&quot;:\&quot;rejected\&quot;,\&quot;notes\&quot;:\&quot;Automated verification failed. Document or identity check did not pass.\&quot;,\&quot;verifiedBy\&quot;:\&quot;UiPath RPA Bot\&quot;}&quot;]" />
+
+                    <Assign DisplayName="Increment Rejected">
+                      <Assign.To><OutArgument x:TypeArguments="x:Int32">[var_Rejected]</OutArgument></Assign.To>
+                      <Assign.Value><InArgument x:TypeArguments="x:Int32">[var_Rejected + 1]</InArgument></Assign.Value>
+                    </Assign>
+                  </Sequence>
+                </If.Else>
+              </If>
+
+              <Assign DisplayName="Increment Processed">
+                <Assign.To><OutArgument x:TypeArguments="x:Int32">[var_Processed]</OutArgument></Assign.To>
+                <Assign.Value><InArgument x:TypeArguments="x:Int32">[var_Processed + 1]</InArgument></Assign.Value>
+              </Assign>
+
+              <!-- Small delay between applications -->
+              <Delay Duration="[TimeSpan.FromSeconds(1)]" DisplayName="Delay between apps" />
+
+            </Sequence>
+          </TryCatch.Try>
+          <TryCatch.Catches>
+            <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+              <ActivityAction x:TypeArguments="s:Exception">
+                <ActivityAction.Argument>
+                  <DelegateInArgument x:TypeArguments="s:Exception" Name="appEx" />
+                </ActivityAction.Argument>
+                <ui:LogMessage Level="Error"
+                  Message="[String.Format(&quot;  ✗ Error processing {0}: {1}&quot;, var_CurrentAppId, appEx.Message)]" />
+              </ActivityAction>
+            </Catch>
+          </TryCatch.Catches>
+        </TryCatch>
+
+      </ActivityAction>
+    </ForEach>
+
+    <!-- Set output arguments -->
+    <Assign DisplayName="Set out_ProcessedCount">
+      <Assign.To><OutArgument x:TypeArguments="x:Int32">[out_ProcessedCount]</OutArgument></Assign.To>
+      <Assign.Value><InArgument x:TypeArguments="x:Int32">[var_Processed]</InArgument></Assign.Value>
+    </Assign>
+    <Assign DisplayName="Set out_ApprovedCount">
+      <Assign.To><OutArgument x:TypeArguments="x:Int32">[out_ApprovedCount]</OutArgument></Assign.To>
+      <Assign.Value><InArgument x:TypeArguments="x:Int32">[var_Approved]</InArgument></Assign.Value>
+    </Assign>
+    <Assign DisplayName="Set out_RejectedCount">
+      <Assign.To><OutArgument x:TypeArguments="x:Int32">[out_RejectedCount]</OutArgument></Assign.To>
+      <Assign.Value><InArgument x:TypeArguments="x:Int32">[var_Rejected]</InArgument></Assign.Value>
+    </Assign>
+
+    <ui:LogMessage DisplayName="Log — Processing Complete" Level="Info"
+      Message="[String.Format(&quot;✓ Application processing complete — {0} processed, {1} approved, {2} rejected&quot;, var_Processed, var_Approved, var_Rejected)]" />
+
+  </Sequence>
+</Activity>
