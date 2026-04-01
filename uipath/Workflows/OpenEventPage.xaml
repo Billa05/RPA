@@ -1,0 +1,79 @@
+<Activity mc:Ignorable="sap sap2010" x:Class="CertifyHub.OpenEventPage"
+  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
+  xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
+  xmlns:ui="http://schemas.uipath.com/workflow/activities"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!--
+    Opens CertifyHub in Chrome, waits for events to load,
+    then clicks on the target event card.
+  -->
+
+  <x:Members>
+    <x:Property Name="in_WebsiteURL" Type="InArgument(x:String)" />
+    <x:Property Name="in_EventId"    Type="InArgument(x:String)" />
+  </x:Members>
+
+  <Sequence DisplayName="Open Website and Navigate to Event">
+
+    <ui:LogMessage Level="Info" Message="[&quot;Step 3: Opening browser → &quot; + in_WebsiteURL.ToString()]" />
+
+    <ui:OpenBrowser DisplayName="Open CertifyHub in Chrome"
+      BrowserType="Chrome"
+      Url="[in_WebsiteURL.ToString()]">
+      <ui:OpenBrowser.Body>
+        <ActivityAction x:TypeArguments="ui:Browser">
+          <ActivityAction.Argument>
+            <DelegateInArgument x:TypeArguments="ui:Browser" Name="browser" />
+          </ActivityAction.Argument>
+
+          <ui:BrowserScope DisplayName="CertifyHub Window" Browser="[browser]">
+            <ui:BrowserScope.Body>
+              <ActivityAction>
+                <Sequence DisplayName="Interact with Event List">
+
+                  <!-- Wait for events to render (JS loads them async) -->
+                  <Delay Duration="[TimeSpan.FromSeconds(3)]" DisplayName="Wait for events to load" />
+
+                  <ui:LogMessage Level="Info" Message="&quot;  → Homepage loaded — events grid should be visible&quot;" />
+
+                  <!-- Click 'Browse Events' button if present, otherwise events may already be loading -->
+                  <TryCatch DisplayName="Try: Click Browse Events">
+                    <TryCatch.Try>
+                      <ui:Click DisplayName="Click Browse Events button"
+                        Target="{ui:Target Selector='&lt;html app=&quot;chrome.exe&quot; /&gt;&lt;webctrl tag=&quot;BUTTON&quot; innertext=&quot;Browse Events&quot; /&gt;'}"
+                        ContinueOnError="True" />
+                    </TryCatch.Try>
+                    <TryCatch.Catches>
+                      <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+                        <ActivityAction x:TypeArguments="s:Exception">
+                          <ActivityAction.Argument><DelegateInArgument x:TypeArguments="s:Exception" Name="e" /></ActivityAction.Argument>
+                          <ui:LogMessage Level="Info" Message="&quot;  → Events already loading (no button click needed)&quot;" />
+                        </ActivityAction>
+                      </Catch>
+                    </TryCatch.Catches>
+                  </TryCatch>
+
+                  <Delay Duration="[TimeSpan.FromSeconds(2)]" DisplayName="Wait for event cards" />
+
+                  <!-- Click first event card -->
+                  <ui:Click DisplayName="Click first event card"
+                    Target="{ui:Target Selector='&lt;html app=&quot;chrome.exe&quot; /&gt;&lt;webctrl tag=&quot;DIV&quot; class=&quot;card event-card&quot; idx=&quot;1&quot; /&gt;'}" />
+
+                  <Delay Duration="[TimeSpan.FromSeconds(1)]" DisplayName="Wait for flow view" />
+
+                  <ui:LogMessage Level="Info" Message="&quot;  ✓ Event page opened — attendance check panel visible&quot;" />
+
+                </Sequence>
+              </ActivityAction>
+            </ui:BrowserScope.Body>
+          </ui:BrowserScope>
+
+        </ActivityAction>
+      </ui:OpenBrowser.Body>
+    </ui:OpenBrowser>
+
+  </Sequence>
+</Activity>

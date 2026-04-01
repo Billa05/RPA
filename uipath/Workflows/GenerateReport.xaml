@@ -1,0 +1,137 @@
+<Activity mc:Ignorable="sap sap2010" x:Class="CertifyHub.GenerateReport"
+  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
+  xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
+  xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
+  xmlns:sd="clr-namespace:System.Data;assembly=System.Data"
+  xmlns:ui="http://schemas.uipath.com/workflow/activities"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:json="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json">
+
+  <!--
+    Fetches the registration details from the API and writes
+    a summary to an Excel report file.
+  -->
+
+  <x:Members>
+    <x:Property Name="in_ApiBaseURL"       Type="InArgument(x:String)" />
+    <x:Property Name="in_RegistrationId"   Type="InArgument(x:String)" />
+    <x:Property Name="in_CertificateReady" Type="InArgument(x:Boolean)" />
+    <x:Property Name="in_AttendeeName"     Type="InArgument(x:String)" />
+  </x:Members>
+
+  <Sequence DisplayName="Generate Excel Report">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:String"     Name="RegResp" />
+      <Variable x:TypeArguments="json:JObject" Name="RegObj" />
+      <Variable x:TypeArguments="sd:DataTable" Name="ReportTable" />
+      <Variable x:TypeArguments="x:String"     Name="ReportPath" Default="&quot;Reports\CertifyHub_Run_Report.xlsx&quot;" />
+    </Sequence.Variables>
+
+    <ui:LogMessage Level="Info" Message="&quot;Step 6: Generating run report…&quot;" />
+
+    <!-- Fetch full registration details -->
+    <TryCatch DisplayName="Fetch Registration Details">
+      <TryCatch.Try>
+        <Sequence>
+          <ui:HttpClient DisplayName="GET /registrations/:id"
+            RequestUrl="[in_ApiBaseURL.ToString() + &quot;/registrations/&quot; + in_RegistrationId.ToString()]"
+            Method="GET"
+            AcceptFormat="JSON"
+            Result="[RegResp]"
+            Timeout="10000" />
+
+          <Assign DisplayName="Parse response">
+            <Assign.To><OutArgument x:TypeArguments="json:JObject">[RegObj]</OutArgument></Assign.To>
+            <Assign.Value><InArgument x:TypeArguments="json:JObject">[json:JObject.Parse(RegResp)]</InArgument></Assign.Value>
+          </Assign>
+        </Sequence>
+      </TryCatch.Try>
+      <TryCatch.Catches>
+        <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+          <ActivityAction x:TypeArguments="s:Exception">
+            <ActivityAction.Argument><DelegateInArgument x:TypeArguments="s:Exception" Name="ex" /></ActivityAction.Argument>
+            <ui:LogMessage Level="Warn" Message="[&quot;  ⚠ Could not fetch registration details: &quot; + ex.Message]" />
+          </ActivityAction>
+        </Catch>
+      </TryCatch.Catches>
+    </TryCatch>
+
+    <!-- Build DataTable -->
+    <ui:BuildDataTable DisplayName="Build Report Table" DataTable="[ReportTable]" TableName="RunReport">
+      <ui:BuildDataTable.Columns>
+        <ui:DataTableColumn ColumnName="Run Timestamp"       DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Attendee Name"       DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Registration ID"     DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Event"               DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Verification Status" DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Certificate Ready"   DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Vendor Override"     DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Certificate Hash"    DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Documents Verified"  DataType="System.String" />
+        <ui:DataTableColumn ColumnName="Documents Failed"    DataType="System.String" />
+      </ui:BuildDataTable.Columns>
+    </ui:BuildDataTable>
+
+    <!-- Add one row with the run summary -->
+    <TryCatch DisplayName="Add Summary Row">
+      <TryCatch.Try>
+        <ui:AddDataRow DisplayName="Add Row"
+          DataTable="[ReportTable]"
+          ArrayRow="[New Object() {
+            DateTime.Now.ToString(&quot;yyyy-MM-dd HH:mm:ss&quot;),
+            in_AttendeeName.ToString(),
+            in_RegistrationId.ToString(),
+            If(RegObj IsNot Nothing, RegObj(&quot;eventName&quot;).ToString(), &quot;N/A&quot;),
+            If(RegObj IsNot Nothing, RegObj(&quot;verificationStatus&quot;).ToString(), &quot;unknown&quot;),
+            in_CertificateReady.ToString(),
+            If(RegObj IsNot Nothing, RegObj(&quot;vendorOverride&quot;).ToString(), &quot;false&quot;),
+            If(RegObj IsNot Nothing AndAlso RegObj(&quot;certificateHash&quot;) IsNot Nothing, RegObj(&quot;certificateHash&quot;).ToString(), &quot;—&quot;),
+            If(RegObj IsNot Nothing, RegObj(&quot;documents&quot;).Children().Count(Function(d) d(&quot;status&quot;).ToString() = &quot;verified&quot;).ToString(), &quot;0&quot;),
+            If(RegObj IsNot Nothing, RegObj(&quot;documents&quot;).Children().Count(Function(d) d(&quot;status&quot;).ToString() = &quot;failed&quot;).ToString(), &quot;0&quot;)
+          }]" />
+      </TryCatch.Try>
+      <TryCatch.Catches>
+        <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+          <ActivityAction x:TypeArguments="s:Exception">
+            <ActivityAction.Argument><DelegateInArgument x:TypeArguments="s:Exception" Name="rowEx" /></ActivityAction.Argument>
+            <ui:LogMessage Level="Warn" Message="[&quot;  ⚠ Could not build full row: &quot; + rowEx.Message]" />
+          </ActivityAction>
+        </Catch>
+      </TryCatch.Catches>
+    </TryCatch>
+
+    <!-- Write to Excel -->
+    <TryCatch DisplayName="Write Excel Report">
+      <TryCatch.Try>
+        <Sequence>
+          <ui:ExcelWriteRange DisplayName="Write to Excel"
+            DataTable="[ReportTable]"
+            SheetName="Run Report"
+            WorkbookPath="[ReportPath]"
+            StartingCell="A1"
+            AddHeaders="True" />
+          <ui:LogMessage Level="Info" Message="[&quot;  ✓ Report saved to: &quot; + ReportPath]" />
+        </Sequence>
+      </TryCatch.Try>
+      <TryCatch.Catches>
+        <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+          <ActivityAction x:TypeArguments="s:Exception">
+            <ActivityAction.Argument><DelegateInArgument x:TypeArguments="s:Exception" Name="xlEx" /></ActivityAction.Argument>
+            <ui:LogMessage Level="Warn" Message="[&quot;  ⚠ Excel write failed (install UiPath.Excel.Activities): &quot; + xlEx.Message]" />
+          </ActivityAction>
+        </Catch>
+      </TryCatch.Catches>
+    </TryCatch>
+
+    <!-- Always log summary to Output panel regardless of Excel -->
+    <ui:LogMessage Level="Info" Message="&quot;──────────────────────────────────────────&quot;" />
+    <ui:LogMessage Level="Info" Message="[&quot;  RUN SUMMARY&quot;]" />
+    <ui:LogMessage Level="Info" Message="[&quot;  Attendee    : &quot; + in_AttendeeName.ToString()]" />
+    <ui:LogMessage Level="Info" Message="[&quot;  Reg ID      : &quot; + in_RegistrationId.ToString()]" />
+    <ui:LogMessage Level="Info" Message="[&quot;  Certificate : &quot; + in_CertificateReady.ToString()]" />
+    <ui:LogMessage Level="Info" Message="&quot;──────────────────────────────────────────&quot;" />
+
+  </Sequence>
+</Activity>

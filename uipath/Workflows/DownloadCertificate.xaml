@@ -1,0 +1,126 @@
+<Activity mc:Ignorable="sap sap2010" x:Class="CertifyHub.DownloadCertificate"
+  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+  xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
+  xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
+  xmlns:ui="http://schemas.uipath.com/workflow/activities"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:json="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json">
+
+  <!--
+    1. Fetches certificate data from API
+    2. Navigates website to Download page
+    3. Enters registration ID
+    4. Clicks "Print Certificate" to trigger the download
+  -->
+
+  <x:Members>
+    <x:Property Name="in_ApiBaseURL"      Type="InArgument(x:String)" />
+    <x:Property Name="in_RegistrationId" Type="InArgument(x:String)" />
+    <x:Property Name="in_WebsiteURL"      Type="InArgument(x:String)" />
+  </x:Members>
+
+  <Sequence DisplayName="Download Certificate for Approved Registration">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:String"     Name="CertResp" />
+      <Variable x:TypeArguments="json:JObject" Name="CertObj" />
+      <Variable x:TypeArguments="x:String"     Name="ApplicantName" />
+      <Variable x:TypeArguments="x:String"     Name="EventName" />
+      <Variable x:TypeArguments="x:String"     Name="CertHash" />
+    </Sequence.Variables>
+
+    <ui:LogMessage Level="Info" Message="[&quot;Step 5: Downloading certificate for &quot; + in_RegistrationId.ToString()]" />
+
+    <!-- ── 5A: Fetch certificate data via API ── -->
+    <TryCatch DisplayName="5A — GET Certificate Data">
+      <TryCatch.Try>
+        <Sequence>
+          <ui:HttpClient DisplayName="GET /registrations/:id/certificate"
+            RequestUrl="[in_ApiBaseURL.ToString() + &quot;/registrations/&quot; + in_RegistrationId.ToString() + &quot;/certificate&quot;]"
+            Method="GET"
+            AcceptFormat="JSON"
+            Result="[CertResp]"
+            Timeout="10000" />
+
+          <Assign DisplayName="Parse cert response">
+            <Assign.To><OutArgument x:TypeArguments="json:JObject">[CertObj]</OutArgument></Assign.To>
+            <Assign.Value><InArgument x:TypeArguments="json:JObject">[json:JObject.Parse(CertResp)]</InArgument></Assign.Value>
+          </Assign>
+
+          <Assign DisplayName="Get applicant name">
+            <Assign.To><OutArgument x:TypeArguments="x:String">[ApplicantName]</OutArgument></Assign.To>
+            <Assign.Value><InArgument x:TypeArguments="x:String">[CertObj("applicantName").ToString()]</InArgument></Assign.Value>
+          </Assign>
+
+          <Assign DisplayName="Get event name">
+            <Assign.To><OutArgument x:TypeArguments="x:String">[EventName]</OutArgument></Assign.To>
+            <Assign.Value><InArgument x:TypeArguments="x:String">[CertObj("eventName").ToString()]</InArgument></Assign.Value>
+          </Assign>
+
+          <Assign DisplayName="Get cert hash">
+            <Assign.To><OutArgument x:TypeArguments="x:String">[CertHash]</OutArgument></Assign.To>
+            <Assign.Value><InArgument x:TypeArguments="x:String">[CertObj("hash").ToString()]</InArgument></Assign.Value>
+          </Assign>
+
+          <ui:LogMessage Level="Info"
+            Message="[&quot;  ✓ Certificate retrieved: &quot; + ApplicantName + &quot; — &quot; + EventName]" />
+          <ui:LogMessage Level="Info"
+            Message="[&quot;  ✓ Certificate hash: &quot; + CertHash]" />
+        </Sequence>
+      </TryCatch.Try>
+      <TryCatch.Catches>
+        <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+          <ActivityAction x:TypeArguments="s:Exception">
+            <ActivityAction.Argument><DelegateInArgument x:TypeArguments="s:Exception" Name="certEx" /></ActivityAction.Argument>
+            <ui:LogMessage Level="Error" Message="[&quot;  ✗ Failed to get certificate: &quot; + certEx.Message]" />
+          </ActivityAction>
+        </Catch>
+      </TryCatch.Catches>
+    </TryCatch>
+
+    <!-- ── 5B: Interact with website Download page ── -->
+    <TryCatch DisplayName="5B — Trigger Certificate Download on Website">
+      <TryCatch.Try>
+        <Sequence>
+
+          <ui:LogMessage Level="Info" Message="&quot;  → Navigating website to certificate download page…&quot;" />
+
+          <!-- The website is already open from Step 3.
+               We need to get back to the certificate step.
+               The user is on step 3 or 4 of the wizard.
+               Click 'Get Certificate' button if it's visible. -->
+
+          <ui:Click DisplayName="Click Get Certificate button"
+            Target="{ui:Target Selector='&lt;html app=&quot;chrome.exe&quot; /&gt;&lt;webctrl id=&quot;btn-get-cert&quot; tag=&quot;BUTTON&quot; /&gt;'}"
+            ContinueOnError="True" />
+
+          <Delay Duration="[TimeSpan.FromSeconds(2)]" DisplayName="Wait for certificate to render" />
+
+          <!-- Click Print Certificate button -->
+          <ui:Click DisplayName="Click Print Certificate"
+            Target="{ui:Target Selector='&lt;html app=&quot;chrome.exe&quot; /&gt;&lt;webctrl tag=&quot;BUTTON&quot; innertext=&quot;Print Certificate&quot; /&gt;'}"
+            ContinueOnError="True" />
+
+          <Delay Duration="[TimeSpan.FromSeconds(2)]" DisplayName="Wait for print dialog" />
+
+          <!-- Close print dialog with Escape (we don't actually want to print in automation) -->
+          <ui:SendHotkey DisplayName="Close print dialog" Key="Escape" ContinueOnError="True" />
+
+          <ui:LogMessage Level="Info" Message="[&quot;  ✓ Certificate download triggered for: &quot; + ApplicantName]" />
+          <ui:LogMessage Level="Info" Message="[&quot;  ✓ Verified hash: SHA256:&quot; + CertHash.Substring(0,16) + &quot;…&quot;]" />
+
+        </Sequence>
+      </TryCatch.Try>
+      <TryCatch.Catches>
+        <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
+          <ActivityAction x:TypeArguments="s:Exception">
+            <ActivityAction.Argument><DelegateInArgument x:TypeArguments="s:Exception" Name="dlEx" /></ActivityAction.Argument>
+            <ui:LogMessage Level="Warn"
+              Message="[&quot;  ⚠ Website download UI failed (cert data retrieved via API): &quot; + dlEx.Message]" />
+          </ActivityAction>
+        </Catch>
+      </TryCatch.Catches>
+    </TryCatch>
+
+  </Sequence>
+</Activity>

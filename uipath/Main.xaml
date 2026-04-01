@@ -1,146 +1,136 @@
-<Activity mc:Ignorable="sap sap2010 sads" x:Class="Main"
+<Activity mc:Ignorable="sap sap2010" x:Class="CertifyHub.Main"
   xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
   xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
   xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
   xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
-  xmlns:sads="http://schemas.microsoft.com/netfx/2010/xaml/activities/debugger"
   xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
   xmlns:ui="http://schemas.uipath.com/workflow/activities"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <TextExpression.NamespacesForImplementation>
-    <scg:List x:TypeArguments="x:String">
-      <x:String>System</x:String>
-      <x:String>System.Collections.Generic</x:String>
-      <x:String>System.Linq</x:String>
-      <x:String>UiPath.Core.Activities</x:String>
-      <x:String>Newtonsoft.Json</x:String>
-      <x:String>Newtonsoft.Json.Linq</x:String>
-    </scg:List>
-  </TextExpression.NamespacesForImplementation>
+  <!--
+    CertifyHub RPA — Main Orchestrator (User Flow)
+    ================================================
+    Simulates a user:
+      1. Opening the website and picking an event
+      2. Entering their name + ID (attendance check)
+      3. Uploading sample documents
+      4. Waiting for mock verification results
+      5. Downloading the certificate if approved
+      6. Logging the result to a report
+  -->
 
-  <Sequence DisplayName="CertifyHub RPA — Main Orchestrator" sap2010:WorkflowViewState.IdRef="MainSequence_1">
-
-    <!-- ============ GLOBAL VARIABLES ============ -->
+  <Sequence DisplayName="Main — CertifyHub User Flow Orchestrator">
     <Sequence.Variables>
-      <Variable x:TypeArguments="x:String" Name="var_BaseURL" Default="http://localhost:5000/api" />
-      <Variable x:TypeArguments="x:String" Name="var_WebsiteURL" Default="http://localhost:8080" />
-      <Variable x:TypeArguments="x:String" Name="var_AdminUser" Default="admin" />
-      <Variable x:TypeArguments="x:String" Name="var_AdminPass" Default="admin123" />
-      <Variable x:TypeArguments="x:String" Name="var_OutputExcelPath" Default="Reports\CertifyHub_Report.xlsx" />
-      <Variable x:TypeArguments="x:String" Name="var_HealthStatus" />
-      <Variable x:TypeArguments="x:String" Name="var_SeedResponse" />
-      <Variable x:TypeArguments="x:Int32" Name="var_ProcessedCount" Default="0" />
-      <Variable x:TypeArguments="x:Int32" Name="var_ApprovedCount" Default="0" />
-      <Variable x:TypeArguments="x:Int32" Name="var_RejectedCount" Default="0" />
-      <Variable x:TypeArguments="x:Boolean" Name="var_BackendAlive" Default="False" />
+      <Variable x:TypeArguments="x:String" Name="WebsiteURL"    Default="&quot;http://localhost:8080&quot;" />
+      <Variable x:TypeArguments="x:String" Name="ApiBaseURL"    Default="&quot;http://localhost:5000/api&quot;" />
+      <Variable x:TypeArguments="x:String" Name="HealthResp"    Default="&quot;&quot;" />
+      <Variable x:TypeArguments="x:String" Name="EventId"       Default="&quot;EVT-DEMO1&quot;" />
+      <Variable x:TypeArguments="x:String" Name="AttendeeName"  Default="&quot;Rajesh Kumar&quot;" />
+      <Variable x:TypeArguments="x:String" Name="AttendeeId"    Default="&quot;ID001&quot;" />
+      <Variable x:TypeArguments="x:String" Name="RegistrationId" Default="&quot;&quot;" />
+      <Variable x:TypeArguments="x:Boolean" Name="CertificateReady" Default="False" />
+      <Variable x:TypeArguments="x:Boolean" Name="BackendAlive"     Default="False" />
     </Sequence.Variables>
 
-    <!-- ============ STEP 0: LOG START ============ -->
-    <ui:LogMessage DisplayName="Log — Workflow Started" Level="Info"
-      Message="[String.Format(&quot;========== CertifyHub RPA Started at {0} ==========&quot;, DateTime.Now.ToString())]" />
+    <ui:LogMessage Level="Info" Message="&quot;══════════════════════════════════════════&quot;" />
+    <ui:LogMessage Level="Info" Message="&quot;  CertifyHub RPA — User Flow Started&quot;" />
+    <ui:LogMessage Level="Info" Message="[&quot;  Timestamp: &quot; + DateTime.Now.ToString(&quot;yyyy-MM-dd HH:mm:ss&quot;)]" />
+    <ui:LogMessage Level="Info" Message="&quot;══════════════════════════════════════════&quot;" />
 
-    <!-- ============ STEP 1: HEALTH CHECK ============ -->
-    <TryCatch DisplayName="Step 1: Health Check">
+    <!-- ── Step 1: Health Check ── -->
+    <TryCatch DisplayName="Step 1 — Backend Health Check">
       <TryCatch.Try>
-        <Sequence DisplayName="Check Backend Health">
-          <ui:LogMessage DisplayName="Log — Checking Backend" Level="Info"
-            Message="&quot;Step 1: Checking backend health at &quot; &amp; var_BaseURL &amp; &quot;/health&quot;" />
-
+        <Sequence>
           <ui:HttpClient DisplayName="GET /api/health"
+            RequestUrl="[ApiBaseURL + &quot;/health&quot;]"
             Method="GET"
-            EndPoint="{x:Null}"
-            RequestUrl="http://localhost:5000/api/health"
-            Result="[var_HealthStatus]"
+            Result="[HealthResp]"
             AcceptFormat="JSON"
-            Timeout="10000" />
-
-          <ui:LogMessage DisplayName="Log — Health Response" Level="Info"
-            Message="&quot;Health Check Response: &quot; &amp; var_HealthStatus" />
-
-          <Assign DisplayName="Set BackendAlive = True">
-            <Assign.To>
-              <OutArgument x:TypeArguments="x:Boolean">[var_BackendAlive]</OutArgument>
-            </Assign.To>
-            <Assign.Value>
-              <InArgument x:TypeArguments="x:Boolean">True</InArgument>
-            </Assign.Value>
+            Timeout="8000" />
+          <Assign DisplayName="Mark backend alive">
+            <Assign.To><OutArgument x:TypeArguments="x:Boolean">[BackendAlive]</OutArgument></Assign.To>
+            <Assign.Value><InArgument x:TypeArguments="x:Boolean">True</InArgument></Assign.Value>
           </Assign>
-
-          <ui:LogMessage DisplayName="Log — Backend Online" Level="Info"
-            Message="&quot;✓ Backend is healthy and responding&quot;" />
+          <ui:LogMessage Level="Info" Message="[&quot;✓ Backend healthy: &quot; + HealthResp]" />
         </Sequence>
       </TryCatch.Try>
       <TryCatch.Catches>
         <Catch x:TypeArguments="s:Exception" xmlns:s="clr-namespace:System;assembly=mscorlib">
           <ActivityAction x:TypeArguments="s:Exception">
             <ActivityAction.Argument>
-              <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
+              <DelegateInArgument x:TypeArguments="s:Exception" Name="ex" />
             </ActivityAction.Argument>
-            <Sequence DisplayName="Handle Health Check Failure">
-              <ui:LogMessage DisplayName="Log — Backend Offline" Level="Error"
-                Message="&quot;✗ Backend health check failed: &quot; &amp; exception.Message" />
-              <ui:LogMessage Level="Warn" Message="&quot;Attempting to continue with website-only mode...&quot;" />
+            <Sequence>
+              <ui:LogMessage Level="Error" Message="[&quot;✗ Backend unreachable: &quot; + ex.Message]" />
+              <ui:LogMessage Level="Warn"  Message="&quot;Make sure backend is running: cd backend &amp;&amp; python app.py&quot;" />
             </Sequence>
           </ActivityAction>
         </Catch>
       </TryCatch.Catches>
     </TryCatch>
 
-    <!-- ============ STEP 2: SEED TEST DATA ============ -->
-    <InvokeWorkflowFile DisplayName="Step 2: Seed Test Data"
-      WorkflowFileName="SeedTestData.xaml">
+    <!-- ── Step 2: Seed demo data ── -->
+    <InvokeWorkflowFile DisplayName="Step 2 — Seed Demo Data"
+      WorkflowFileName="Workflows\SeedDemoData.xaml">
       <InvokeWorkflowFile.Arguments>
-        <InArgument x:TypeArguments="x:String" x:Key="in_BaseURL">[var_BaseURL]</InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_ApiBaseURL">[ApiBaseURL]</InArgument>
       </InvokeWorkflowFile.Arguments>
     </InvokeWorkflowFile>
 
-    <!-- ============ STEP 3: OPEN BROWSER & LOGIN ============ -->
-    <InvokeWorkflowFile DisplayName="Step 3: Open Browser and Login to Admin"
-      WorkflowFileName="OpenBrowserAndLogin.xaml">
+    <!-- ── Step 3: Open browser and navigate to event ── -->
+    <InvokeWorkflowFile DisplayName="Step 3 — Open Event on Website"
+      WorkflowFileName="Workflows\OpenEventPage.xaml">
       <InvokeWorkflowFile.Arguments>
-        <InArgument x:TypeArguments="x:String" x:Key="in_WebsiteURL">[var_WebsiteURL]</InArgument>
-        <InArgument x:TypeArguments="x:String" x:Key="in_AdminUser">[var_AdminUser]</InArgument>
-        <InArgument x:TypeArguments="x:String" x:Key="in_AdminPass">[var_AdminPass]</InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_WebsiteURL">[WebsiteURL]</InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_EventId">[EventId]</InArgument>
       </InvokeWorkflowFile.Arguments>
     </InvokeWorkflowFile>
 
-    <!-- ============ STEP 4: PROCESS ALL APPLICATIONS ============ -->
-    <InvokeWorkflowFile DisplayName="Step 4: Process Pending Applications"
-      WorkflowFileName="ProcessApplications.xaml">
+    <!-- ── Step 4: Check attendance and upload documents ── -->
+    <InvokeWorkflowFile DisplayName="Step 4 — Register and Upload Documents"
+      WorkflowFileName="Workflows\RegisterAndUpload.xaml">
       <InvokeWorkflowFile.Arguments>
-        <InArgument x:TypeArguments="x:String" x:Key="in_BaseURL">[var_BaseURL]</InArgument>
-        <InArgument x:TypeArguments="x:String" x:Key="in_WebsiteURL">[var_WebsiteURL]</InArgument>
-        <OutArgument x:TypeArguments="x:Int32" x:Key="out_ProcessedCount">[var_ProcessedCount]</OutArgument>
-        <OutArgument x:TypeArguments="x:Int32" x:Key="out_ApprovedCount">[var_ApprovedCount]</OutArgument>
-        <OutArgument x:TypeArguments="x:Int32" x:Key="out_RejectedCount">[var_RejectedCount]</OutArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_ApiBaseURL">[ApiBaseURL]</InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_EventId">[EventId]</InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_AttendeeName">[AttendeeName]</InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="in_AttendeeId">[AttendeeId]</InArgument>
+        <OutArgument x:TypeArguments="x:String"  x:Key="out_RegistrationId">[RegistrationId]</OutArgument>
+        <OutArgument x:TypeArguments="x:Boolean" x:Key="out_CertificateReady">[CertificateReady]</OutArgument>
       </InvokeWorkflowFile.Arguments>
     </InvokeWorkflowFile>
 
-    <!-- ============ STEP 5: DOWNLOAD APPROVED CERTIFICATES ============ -->
-    <InvokeWorkflowFile DisplayName="Step 5: Download Approved Certificates"
-      WorkflowFileName="DownloadCertificates.xaml">
+    <!-- ── Step 5: Download certificate (if ready) ── -->
+    <If DisplayName="Step 5 — Certificate Ready?" Condition="[CertificateReady]">
+      <If.Then>
+        <InvokeWorkflowFile DisplayName="Download Certificate"
+          WorkflowFileName="Workflows\DownloadCertificate.xaml">
+          <InvokeWorkflowFile.Arguments>
+            <InArgument x:TypeArguments="x:String" x:Key="in_ApiBaseURL">[ApiBaseURL]</InArgument>
+            <InArgument x:TypeArguments="x:String" x:Key="in_RegistrationId">[RegistrationId]</InArgument>
+            <InArgument x:TypeArguments="x:String" x:Key="in_WebsiteURL">[WebsiteURL]</InArgument>
+          </InvokeWorkflowFile.Arguments>
+        </InvokeWorkflowFile>
+      </If.Then>
+      <If.Else>
+        <ui:LogMessage Level="Warn" Message="[&quot;⚠ Certificate not ready for &quot; + RegistrationId + &quot; — may need vendor review&quot;]" />
+      </If.Else>
+    </If>
+
+    <!-- ── Step 6: Generate Report ── -->
+    <InvokeWorkflowFile DisplayName="Step 6 — Generate Report"
+      WorkflowFileName="Workflows\GenerateReport.xaml">
       <InvokeWorkflowFile.Arguments>
-        <InArgument x:TypeArguments="x:String" x:Key="in_BaseURL">[var_BaseURL]</InArgument>
-        <InArgument x:TypeArguments="x:String" x:Key="in_WebsiteURL">[var_WebsiteURL]</InArgument>
+        <InArgument x:TypeArguments="x:String"  x:Key="in_ApiBaseURL">[ApiBaseURL]</InArgument>
+        <InArgument x:TypeArguments="x:String"  x:Key="in_RegistrationId">[RegistrationId]</InArgument>
+        <InArgument x:TypeArguments="x:Boolean" x:Key="in_CertificateReady">[CertificateReady]</InArgument>
+        <InArgument x:TypeArguments="x:String"  x:Key="in_AttendeeName">[AttendeeName]</InArgument>
       </InvokeWorkflowFile.Arguments>
     </InvokeWorkflowFile>
 
-    <!-- ============ STEP 6: GENERATE REPORT ============ -->
-    <InvokeWorkflowFile DisplayName="Step 6: Generate Excel Report"
-      WorkflowFileName="GenerateReport.xaml">
-      <InvokeWorkflowFile.Arguments>
-        <InArgument x:TypeArguments="x:String" x:Key="in_BaseURL">[var_BaseURL]</InArgument>
-        <InArgument x:TypeArguments="x:String" x:Key="in_OutputPath">[var_OutputExcelPath]</InArgument>
-        <InArgument x:TypeArguments="x:Int32" x:Key="in_ProcessedCount">[var_ProcessedCount]</InArgument>
-        <InArgument x:TypeArguments="x:Int32" x:Key="in_ApprovedCount">[var_ApprovedCount]</InArgument>
-        <InArgument x:TypeArguments="x:Int32" x:Key="in_RejectedCount">[var_RejectedCount]</InArgument>
-      </InvokeWorkflowFile.Arguments>
-    </InvokeWorkflowFile>
-
-    <!-- ============ STEP 7: FINAL SUMMARY ============ -->
-    <ui:LogMessage DisplayName="Log — Final Summary" Level="Info"
-      Message="[String.Format(&quot;========== CertifyHub RPA Complete ==========&#xA;Processed: {0} | Approved: {1} | Rejected: {2}&#xA;Finished at: {3}&quot;, var_ProcessedCount, var_ApprovedCount, var_RejectedCount, DateTime.Now.ToString())]" />
+    <ui:LogMessage Level="Info" Message="&quot;══════════════════════════════════════════&quot;" />
+    <ui:LogMessage Level="Info" Message="[&quot;  CertifyHub RPA — Completed at &quot; + DateTime.Now.ToString(&quot;HH:mm:ss&quot;)]" />
+    <ui:LogMessage Level="Info" Message="[&quot;  Registration: &quot; + RegistrationId + &quot;  |  Certificate: &quot; + CertificateReady.ToString()]" />
+    <ui:LogMessage Level="Info" Message="&quot;══════════════════════════════════════════&quot;" />
 
   </Sequence>
 </Activity>
