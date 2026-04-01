@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CertifyHub — Vendor Portal</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    /* ── Vendor-specific ── */
+    .login-wrap {
+      min-height: 100vh; display: flex;
+      align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .login-card {
+      width: 100%; max-width: 420px;
+      padding: 48px; text-align: center;
+    }
+    .login-icon {
+      width: 64px; height: 64px; border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent), #6366f1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; color: #fff;
+      margin: 0 auto 24px;
+      box-shadow: 0 4px 24px var(--accent-glow);
+    }
+    .dash-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 32px; flex-wrap: wrap; gap: 12px;
+    }
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px; margin-bottom: 32px;
+    }
+    .stat-card {
+      padding: 18px 20px; border-radius: var(--r);
+      border: 1px solid var(--border); background: var(--surface);
+    }
+    .stat-card .num { font-size: 28px; font-weight: 800; font-family: var(--mono); }
+    .stat-card .lbl { font-size: 12px; color: var(--txt3); margin-top: 2px; }
+
+    /* Create event form */
+    .create-form { max-width: 740px; }
+
+    .doc-checkboxes {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 10px;
+    }
+    .doc-check-option { cursor: pointer; }
+    .doc-check-option input { display: none; }
+    .doc-check-box {
+      display: flex; align-items: center; gap: 10px;
+      padding: 11px 14px; border-radius: var(--r-sm);
+      border: 1.5px solid var(--border); transition: var(--t);
+      font-size: 13px; font-weight: 500;
+    }
+    .doc-check-box i { color: var(--txt3); font-size: 14px; transition: var(--t); }
+    .doc-check-option input:checked + .doc-check-box {
+      border-color: var(--accent);
+      background: rgba(124,92,252,0.07);
+    }
+    .doc-check-option input:checked + .doc-check-box i { color: var(--accent2); }
+
+    .excel-zone {
+      border: 2px dashed var(--border); border-radius: var(--r);
+      padding: 32px; text-align: center; cursor: pointer; transition: var(--t);
+    }
+    .excel-zone:hover, .excel-zone.drag-over {
+      border-color: var(--accent); background: rgba(124,92,252,0.04);
+    }
+    .excel-preview {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--r-sm);
+    }
+    .excel-preview i { color: var(--green); font-size: 20px; }
+
+    /* Registrations */
+    .reg-card {
+      padding: 18px 20px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); transition: var(--t);
+      cursor: pointer;
+    }
+    .reg-card:hover { border-color: var(--border-h); background: var(--surface); }
+    .reg-card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .reg-name { font-weight: 700; font-size: 15px; }
+    .reg-id   { font-size: 12px; color: var(--txt3); font-family: var(--mono); margin-top: 2px; }
+    .reg-docs-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .doc-mini {
+      display: flex; align-items: center; gap: 5px;
+      padding: 3px 9px; border-radius: 100px;
+      font-size: 11px; font-weight: 600; border: 1px solid;
+    }
+    .doc-mini.verified { color: var(--green);  border-color: rgba(34,197,94,0.3);  background: rgba(34,197,94,0.08); }
+    .doc-mini.failed   { color: var(--red);    border-color: rgba(239,68,68,0.3);  background: rgba(239,68,68,0.08); }
+    .doc-mini.pending  { color: var(--txt3);   border-color: var(--border); }
+
+    /* Tab bar */
+    .tabs { display: flex; gap: 4px; margin-bottom: 28px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+    .tab-btn {
+      padding: 10px 18px; background: none; border: none;
+      color: var(--txt2); font-family: var(--font); font-size: 14px; font-weight: 600;
+      cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px;
+      transition: var(--t);
+    }
+    .tab-btn.active { color: var(--accent2); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeUp 0.25s ease; }
+
+    /* Override modal docs */
+    .override-doc-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; border-radius: var(--r-sm);
+      border: 1px solid var(--border); margin-bottom: 8px;
+    }
+    .override-doc-item i { font-size: 16px; }
+    .override-doc-item.verified { border-color: rgba(34,197,94,0.3); }
+    .override-doc-item.failed   { border-color: rgba(239,68,68,0.3); }
+    .override-doc-item.verified i { color: var(--green); }
+    .override-doc-item.failed   i { color: var(--red); }
+
+    /* Attendee type-in row */
+    .att-row {
+      display: grid; grid-template-columns: 1fr 1fr auto;
+      gap: 8px; align-items: center;
+    }
+    .att-row-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--surface); border: 1px solid var(--border);
+      font-size: 11px; font-weight: 700; color: var(--txt3);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="vendor.html" class="nav-brand">
+    <div class="nav-brand-icon"><i class="fas fa-store"></i></div>
+    CertifyHub <span style="color:var(--accent2);margin-left:4px">Vendor</span>
+  </a>
+  <div class="nav-spacer"></div>
+  <div class="nav-links" id="nav-links" style="display:none">
+    <span id="nav-vendor-name" style="font-size:13px;color:var(--txt2);padding:0 8px"></span>
+    <a href="index.html" class="nav-link"><i class="fas fa-users"></i> User Portal</a>
+    <button class="btn btn-ghost btn-sm" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+  </div>
+</nav>
+
+<!-- LOGIN -->
+<div id="view-login" class="login-wrap">
+  <div class="card card-lg login-card">
+    <div class="login-icon"><i class="fas fa-store"></i></div>
+    <h2 style="margin-bottom:6px">Vendor Login</h2>
+    <p style="margin-bottom:28px">Sign in to manage your events and review registrations</p>
+    <div class="gap-stack" style="text-align:left">
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-envelope"></i> Email</label>
+        <input id="v-email" class="form-input" type="email" placeholder="vendor@acme.com" value="vendor@acme.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label"><i class="fas fa-lock"></i> Password</label>
+        <input id="v-pass" class="form-input" type="password" placeholder="••••••••" value="vendor123">
+      </div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="doLogin()">
+        <i class="fas fa-sign-in-alt"></i> Sign In
+      </button>
+    </div>
+    <p style="margin-top:16px;font-size:12px;color:var(--txt3)">Demo: vendor@acme.com / vendor123</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="view-dash" style="display:none">
+  <div class="container page-wrap">
+
+    <!-- Stats -->
+    <div class="dash-header">
+      <div>
+        <h2 id="dash-greeting" style="margin-bottom:4px">Welcome back</h2>
+        <p>Manage your events and review certificate registrations</p>
+      </div>
+      <button class="btn btn-primary" onclick="showTab('create')">
+        <i class="fas fa-plus"></i> Create Event
+      </button>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat-card">
+        <div class="num" id="s-events" style="color:var(--accent2)">0</div>
+        <div class="lbl"><i class="fas fa-calendar-alt"></i> Total Events</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="s-total" style="color:var(--blue)">0</div>
+        <div class="lbl"><i class="fas fa-file-alt"></i> Registrations</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="s-pending" style="color:var(--yellow)">0</div>
+        <div class="lbl"><i class="fas fa-clock"></i> Needs Review</div>
+      </div>
+      <div class="stat-card">
+        <div class="num" id="s-approved" style="color:var(--green)">0</div>
+        <div class="lbl"><i class="fas fa-check-circle"></i> Approved</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('events')" id="tab-events">
+        <i class="fas fa-calendar-alt"></i> My Events
+      </button>
+      <button class="tab-btn" onclick="showTab('registrations')" id="tab-registrations">
+        <i class="fas fa-list"></i> Registrations
+      </button>
+      <button class="tab-btn" onclick="showTab('create')" id="tab-create">
+        <i class="fas fa-plus"></i> Create Event
+      </button>
+    </div>
+
+    <!-- Tab: Events -->
+    <div class="tab-panel active" id="panel-events">
+      <div id="events-list" class="gap-stack"></div>
+    </div>
+
+    <!-- Tab: Registrations -->
+    <div class="tab-panel" id="panel-registrations">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <select id="filter-event" class="form-select" style="max-width:280px;width:auto" onchange="loadRegistrations()">
+          <option value="">All Events</option>
+        </select>
+        <select id="filter-status" class="form-select" style="max-width:200px;width:auto" onchange="loadRegistrations()">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="partial">Partial Failure</option>
+          <option value="failed">Failed</option>
+          <option value="verified">Verified</option>
+          <option value="approved">Approved</option>
+          <option value="rejected">Rejected</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="loadRegistrations()"><i class="fas fa-sync-alt"></i> Refresh</button>
+      </div>
+      <div id="reg-list" class="gap-stack"></div>
+    </div>
+
+    <!-- Tab: Create Event -->
+    <div class="tab-panel" id="panel-create">
+      <div class="card card-lg create-form">
+        <h2 style="margin-bottom:6px"><i class="fas fa-calendar-plus" style="color:var(--accent2)"></i> Create New Event</h2>
+        <p style="margin-bottom:28px">Fill in event details, select required documents, and upload your attendee Excel file.</p>
+
+        <div class="gap-stack">
+          <div class="form-grid-2">
+            <div class="form-group col-span-2">
+              <label class="form-label"><i class="fas fa-tag"></i> Event Name *</label>
+              <input id="ev-name" class="form-input" placeholder="e.g. Tech Summit 2026">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="fas fa-calendar"></i> Event Date *</label>
+              <input id="ev-date" class="form-input" type="date">
+            </div>
+            <div class="form-group">
+              <label class="form-label"><i class="fas fa-map-marker-alt"></i> Venue</label>
+              <input id="ev-venue" class="form-input" placeholder="City, Venue Name">
+            </div>
+            <div class="form-group col-span-2">
+              <label class="form-label"><i class="fas fa-align-left"></i> Description</label>
+              <textarea id="ev-desc" class="form-input form-textarea" rows="3" placeholder="Brief description of the event"></textarea>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div>
+            <div class="section-title"><i class="fas fa-file-alt"></i> Required Documents</div>
+            <p style="font-size:13px;margin-bottom:14px">Select which documents attendees must upload to get their certificate.</p>
+            <div class="doc-checkboxes" id="doc-checkboxes"></div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div>
+            <div class="section-title"><i class="fas fa-users"></i> Attendee List *</div>
+            <p style="font-size:13px;margin-bottom:14px">Only people in this list can register for the certificate. Enter their <strong>Name</strong> and <strong>ID Number</strong>.</p>
+
+            <!-- Mode toggle -->
+            <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);padding:4px;width:fit-content">
+              <button id="att-toggle-type" class="btn btn-primary btn-sm" onclick="setAttendeeMode('type')" style="min-width:130px">
+                <i class="fas fa-keyboard"></i> Type In
+              </button>
+              <button id="att-toggle-excel" class="btn btn-ghost btn-sm" onclick="setAttendeeMode('excel')" style="min-width:130px">
+                <i class="fas fa-file-excel"></i> Upload Excel
+              </button>
+            </div>
+
+            <!-- TYPE-IN mode (default) -->
+            <div id="att-mode-type">
+              <div id="att-rows" class="gap-stack" style="margin-bottom:12px"></div>
+              <button class="btn btn-ghost btn-sm" onclick="addAttendeeRow()">
+                <i class="fas fa-plus"></i> Add Attendee
+              </button>
+              <p style="font-size:12px;color:var(--txt3);margin-top:8px">
+                <i class="fas fa-info-circle"></i> ID Number must match exactly what the attendee will enter on the user portal.
+              </p>
+            </div>
+
+            <!-- EXCEL mode -->
+            <div id="att-mode-excel" style="display:none">
+              <div class="excel-zone" id="excel-zone"
+                   ondragover="event.preventDefault();document.getElementById('excel-zone').classList.add('drag-over')"
+                   ondragleave="document.getElementById('excel-zone').classList.remove('drag-over')"
+                   ondrop="handleExcelDrop(event)">
+                <input type="file" id="excel-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="excelSelected(this)">
+                <div class="upload-icon"><i class="fas fa-file-excel" style="color:#22c55e"></i></div>
+                <div style="font-size:14px;font-weight:600;margin-bottom:4px">Click or drag file here</div>
+                <div class="upload-hint">Excel (.xlsx) or CSV — columns: Name, IDNumber</div>
+                <button class="btn btn-ghost btn-sm" style="margin-top:12px" onclick="document.getElementById('excel-input').click()">
+                  <i class="fas fa-folder-open"></i> Browse File
+                </button>
+              </div>
+              <div class="excel-preview" id="excel-preview" style="display:none;margin-top:8px">
+                <i class="fas fa-file-excel" style="color:var(--green)"></i>
+                <div style="flex:1">
+                  <div id="excel-name" style="font-weight:600;font-size:14px"></div>
+                  <div id="excel-size" style="font-size:12px;color:var(--txt3)"></div>
+                </div>
+                <button class="btn btn-ghost btn-sm" onclick="removeExcel()"><i class="fas fa-times"></i></button>
+              </div>
+              <div style="margin-top:12px">
+                <button class="btn btn-ghost btn-sm" onclick="downloadSampleExcel()">
+                  <i class="fas fa-download"></i> Download Sample File
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:12px;justify-content:flex-end;padding-top:8px">
+            <button class="btn btn-outline" onclick="showTab('events')">Cancel</button>
+            <button class="btn btn-primary btn-lg" onclick="createEvent()">
+              <i class="fas fa-rocket"></i> Create Event
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Override Modal -->
+<div class="modal-overlay" id="override-modal">
+  <div class="modal-box" style="max-width:580px">
+    <div class="modal-header">
+      <h3><i class="fas fa-user-shield" style="color:var(--accent2)"></i> Review Registration</h3>
+      <button class="modal-close" onclick="closeOverride()">&times;</button>
+    </div>
+    <div id="override-content"></div>
+    <div class="divider"></div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label class="form-label"><i class="fas fa-comment-alt"></i> Note (optional)</label>
+      <textarea id="override-note" class="form-input form-textarea" rows="2" placeholder="Add a note about your decision…"></textarea>
+    </div>
+    <div style="display:flex;gap:12px">
+      <button class="btn btn-success btn-lg" style="flex:1" onclick="doOverride('approve')">
+        <i class="fas fa-check"></i> Approve &amp; Issue Certificate
+      </button>
+      <button class="btn btn-danger btn-lg" style="flex:1" onclick="doOverride('reject')">
+        <i class="fas fa-times"></i> Reject
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="toasts"></div>
+<script src="js/vendor.js"></script>
+</body>
+</html>
