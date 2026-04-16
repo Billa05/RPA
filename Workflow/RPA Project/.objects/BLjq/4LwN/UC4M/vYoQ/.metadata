@@ -1,0 +1,14 @@
+﻿{
+  "Name": "Add Attendee",
+  "Type": "Element",
+  "TaxonomyType": "Button",
+  "Id": "vYoQPgxgG0OsrnnrzTGpFQ",
+  "Reference": "GP8zl1f6RU2xuLpxLrxAug/vYoQPgxgG0OsrnnrzTGpFQ",
+  "ParentRef": "GP8zl1f6RU2xuLpxLrxAug/UC4MQLPb80auTjbjGTy4dA",
+  "Created": "2026-04-16T10:57:50.9554618Z",
+  "Updated": "2026-04-16T10:57:50.9554618Z",
+  "CreatedBy": [
+    "UiPath.UIAutomationCore, Version=25.10.25.0, Culture=neutral, PublicKeyToken=null",
+    "UiPath.Platform, Version=25.10.1.0, Culture=neutral, PublicKeyToken=null"
+  ]
+}

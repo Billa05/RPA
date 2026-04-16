@@ -1,0 +1,13 @@
+﻿{
+  "Name": "Chrome CertifyHub — Vendor Portal",
+  "Type": "Screen",
+  "Id": "UC4MQLPb80auTjbjGTy4dA",
+  "Reference": "GP8zl1f6RU2xuLpxLrxAug/UC4MQLPb80auTjbjGTy4dA",
+  "ParentRef": "GP8zl1f6RU2xuLpxLrxAug/4LwNmHa0GU6QR3LT_q9qzQ",
+  "Created": "2026-04-16T10:57:50.4240499Z",
+  "Updated": "2026-04-16T10:57:50.4240499Z",
+  "CreatedBy": [
+    "UiPath.UIAutomationCore, Version=25.10.25.0, Culture=neutral, PublicKeyToken=null",
+    "UiPath.Platform, Version=25.10.1.0, Culture=neutral, PublicKeyToken=null"
+  ]
+}

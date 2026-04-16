@@ -1,0 +1,13 @@
+﻿{
+  "Name": "Chrome CertifyHub — Event Certificates",
+  "Type": "Screen",
+  "Id": "zCoexNpXR0iJbg4HZidm6g",
+  "Reference": "ll47KebtXkW7NecUm6Zhsg/zCoexNpXR0iJbg4HZidm6g",
+  "ParentRef": "ll47KebtXkW7NecUm6Zhsg/T_AGqtqeO0WmA5Wrk7LvRw",
+  "Created": "2026-04-16T11:21:39.9672795Z",
+  "Updated": "2026-04-16T11:21:39.9672795Z",
+  "CreatedBy": [
+    "UiPath.UIAutomationCore, Version=25.10.25.0, Culture=neutral, PublicKeyToken=null",
+    "UiPath.Platform, Version=25.10.1.0, Culture=neutral, PublicKeyToken=null"
+  ]
+}

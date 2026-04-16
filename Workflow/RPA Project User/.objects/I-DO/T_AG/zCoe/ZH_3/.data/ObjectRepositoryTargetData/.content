@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-16"?>
+<ObjectRepositoryTargetData ContentHash="adLdPls4GUSaGDiujnrIUA" xmlns="http://schemas.uipath.com/workflow/activities/uix" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ObjectRepositoryTargetData.Data>
+    <TargetAnchorable x:Key="TargetAnchorable" BrowserURL="localhost" DesignTimeRectangle="442, 306, 1052, 65" ElementVisibilityArgument="Interactive" FullSelectorArgument="&lt;webctrl id='wizard' tag='DIV' /&gt;" Guid="0b83d65f-bb8e-44c0-b69a-fe304c1ae8d8" ScopeSelectorArgument="&lt;html app='chrome.exe' title='CertifyHub — Event Certificates' /&gt;" SearchSteps="Selector" Version="V6" WaitForReadyArgument="Interactive">
+      <imageRef attrName="InformativeScreenshot" originalValue="d65fbf296cab9856fd41554774323d5d.png" xmlns="">0WGpUwdkcUkaaMHtn4ONFNQ</imageRef>
+    </TargetAnchorable>
+    <x:String x:Key="ActivityType">CheckState</x:String>
+  </ObjectRepositoryTargetData.Data>
+</ObjectRepositoryTargetData>

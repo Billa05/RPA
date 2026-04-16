@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-16"?>
+<ObjectRepositoryTargetData ContentHash="7aQbx3ISLkKL_MJaRdmSuw" xmlns="http://schemas.uipath.com/workflow/activities/uix" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <ObjectRepositoryTargetData.Data>
+    <TargetAnchorable x:Key="TargetAnchorable" BrowserURL="localhost/vendor.html" DesignTimeRectangle="476, 868, 132, 28" ElementType="Button" ElementVisibilityArgument="Interactive" FullSelectorArgument="&lt;webctrl parentid='att-mode-type' tag='BUTTON' /&gt;" Guid="ad994271-ecee-4e75-85cb-773458d9789f" ScopeSelectorArgument="&lt;html app='chrome.exe' title='CertifyHub — Vendor Portal' /&gt;" SearchSteps="Selector" Version="V6" WaitForReadyArgument="Interactive">
+      <imageRef attrName="InformativeScreenshot" originalValue="d29f342ba057d89c7e0552e22eb9fdba.png" xmlns="">0f_aRrUDZ50avWv_GiwjFyg</imageRef>
+    </TargetAnchorable>
+    <x:String x:Key="ActivityType">Click</x:String>
+  </ObjectRepositoryTargetData.Data>
+</ObjectRepositoryTargetData>

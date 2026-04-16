@@ -1,0 +1,12 @@
+﻿{
+  "Name": "Chrome CertifyHub — Event Certificates",
+  "Type": "App",
+  "Id": "I-DOfJQa6EmcPj-Ashd1HA",
+  "Reference": "ll47KebtXkW7NecUm6Zhsg/I-DOfJQa6EmcPj-Ashd1HA",
+  "Created": "2026-04-16T11:21:39.8503163Z",
+  "Updated": "2026-04-16T11:21:39.8503163Z",
+  "CreatedBy": [
+    "UiPath.UIAutomationCore, Version=25.10.25.0, Culture=neutral, PublicKeyToken=null",
+    "UiPath.Platform, Version=25.10.1.0, Culture=neutral, PublicKeyToken=null"
+  ]
+}

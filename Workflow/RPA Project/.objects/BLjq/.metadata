@@ -1,0 +1,12 @@
+﻿{
+  "Name": "Chrome CertifyHub — Vendor Portal",
+  "Type": "App",
+  "Id": "BLjqpRraikSo88P16lpxng",
+  "Reference": "GP8zl1f6RU2xuLpxLrxAug/BLjqpRraikSo88P16lpxng",
+  "Created": "2026-04-16T10:57:50.3503429Z",
+  "Updated": "2026-04-16T10:57:50.3503429Z",
+  "CreatedBy": [
+    "UiPath.UIAutomationCore, Version=25.10.25.0, Culture=neutral, PublicKeyToken=null",
+    "UiPath.Platform, Version=25.10.1.0, Culture=neutral, PublicKeyToken=null"
+  ]
+}
