@@ -1,4 +1,4 @@
-# CertifyHub — RPA Certificate Verification System
+# CertifyHub: RPA Certificate Verification System
 
 A complete UiPath RPA demonstration project with a web portal, mock backend, and automated workflows for certificate generation and document verification.
 
@@ -34,30 +34,6 @@ python -m http.server 8080
 curl -X POST http://localhost:5000/api/seed
 ```
 
-### 4. Open UiPath Studio
-Open `uipath/project.json` in UiPath Studio and run `Main.xaml`.
-
-## UiPath Workflow Flow
-
-```
-Main.xaml
- ├── Step 1: Health Check (GET /api/health)
- ├── Step 2: SeedTestData.xaml (POST /api/seed)
- ├── Step 3: OpenBrowserAndLogin.xaml (UI Automation)
- ├── Step 4: ProcessApplications.xaml
- │    └── For each pending app:
- │         ├── VerifyDocuments.xaml
- │         │    ├── POST /api/verify/aadhaar
- │         │    └── POST /api/verify/batch
- │         └── Approve or Reject (POST /api/applications/:id/verify)
- ├── Step 5: DownloadCertificates.xaml
- │    └── For each approved app:
- │         ├── GET /api/certificates/:id
- │         └── Website UI: Download page interaction
- └── Step 6: GenerateReport.xaml
-      └── Write Excel report with all results
-```
-
 ## API Endpoints
 
 | Method | Endpoint | Description |
@@ -75,31 +51,3 @@ Main.xaml
 | GET | `/api/certificates/verify/:hash` | QR/hash verification |
 | GET | `/api/dashboard/stats` | Dashboard statistics |
 | POST | `/api/seed` | Seed mock test data |
-
-## Mock Aadhaar Database
-
-| Aadhaar | Name | City |
-|---------|------|------|
-| 1234 5678 9012 | Rajesh Kumar | Delhi |
-| 9876 5432 1098 | Priya Sharma | Mumbai |
-| 5555 6666 7777 | Amit Patel | Ahmedabad |
-| 1111 2222 3333 | Sneha Reddy | Hyderabad |
-| 4444 5555 6666 | Mohammed Khan | Lucknow |
-
-## Website Features
-
-- 8 certificate types (Birth, Income, Domicile, Caste, Character, Marriage, Death, Education)
-- 4-step application wizard with validation
-- Drag-and-drop document upload
-- Real-time application tracking with timeline
-- Admin panel with login, filters, and verification modal
-- Certificate download page with preview
-- Dark/light theme toggle
-- Fully responsive design
-- Toast notifications
-- Animated counters and floating UI elements
-
-## Admin Credentials
-
-- **Username:** admin
-- **Password:** admin123
