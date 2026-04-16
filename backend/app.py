@@ -10,7 +10,11 @@ import random
 import string
 import hashlib
 import io
+import os
 import openpyxl
+from flask import send_from_directory
+
+UPLOAD_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
 
 app = Flask(__name__)
 CORS(app)
@@ -201,11 +205,21 @@ def check_attendee(event_id):
                 "found": False,
                 "reason": "ID found but name does not match our records"
             })
-        return jsonify({
+        # Check if this person already has a registration for this event
+        existing_reg = None
+        for r in DB["registrations"].values():
+            if r["eventId"] == event_id and r["idNumber"] == id_number:
+                existing_reg = r
+                break
+
+        result = {
             "found": True,
             "attendeeName": attendees[id_number],
             "message": "Attendance confirmed — you may proceed"
-        })
+        }
+        if existing_reg:
+            result["existingRegistration"] = existing_reg
+        return jsonify(result)
 
     return jsonify({
         "found": False,
@@ -220,14 +234,19 @@ def check_attendee(event_id):
 @app.route("/api/events/<event_id>/register", methods=["POST"])
 def register(event_id):
     """
-    User submits: name, idNumber, list of documents (name + key).
-    Creates a registration with all docs in 'pending' state.
+    Multipart form: field 'data' (JSON) + one file per doc key.
+    Falls back to JSON-only for UiPath bot calls.
     """
     event = DB["events"].get(event_id)
     if not event:
         return jsonify({"error": "Event not found"}), 404
 
-    data = request.json
+    import json as json_mod
+    if request.content_type and 'multipart' in request.content_type:
+        data = json_mod.loads(request.form.get("data", "{}"))
+    else:
+        data = request.json or {}
+
     id_number = str(data.get("idNumber", "")).strip()
 
     # Re-verify attendance
@@ -235,10 +254,30 @@ def register(event_id):
         return jsonify({"error": "Not in attendee list"}), 403
 
     reg_id = gen_id("REG-")
-    docs = [
-        {"key": d["key"], "name": d["name"], "docType": d.get("docType", ""), "status": "pending", "reason": None, "confidence": None}
-        for d in data.get("documents", [])
-    ]
+
+    # Save uploaded files
+    reg_dir = os.path.join(UPLOAD_DIR, reg_id)
+    os.makedirs(reg_dir, exist_ok=True)
+
+    docs = []
+    for d in data.get("documents", []):
+        key = d["key"]
+        saved_filename = None
+        file_obj = request.files.get(key)
+        if file_obj and file_obj.filename:
+            safe_name = key + "_" + file_obj.filename.replace("/", "_").replace("\\", "_")
+            file_obj.save(os.path.join(reg_dir, safe_name))
+            saved_filename = safe_name
+
+        docs.append({
+            "key": key,
+            "name": d.get("name", key),
+            "docType": d.get("docType", ""),
+            "status": "pending",
+            "reason": None,
+            "confidence": None,
+            "savedFile": saved_filename,
+        })
 
     reg = {
         "id": reg_id,
@@ -256,6 +295,15 @@ def register(event_id):
     }
     DB["registrations"][reg_id] = reg
     return jsonify({"id": reg_id, "message": "Registration submitted"}), 201
+
+
+@app.route("/api/registrations/<reg_id>/documents/<filename>", methods=["GET"])
+def serve_document(reg_id, filename):
+    """Serve an uploaded document file for preview."""
+    reg_dir = os.path.join(UPLOAD_DIR, reg_id)
+    if not os.path.isdir(reg_dir):
+        return jsonify({"error": "No files found"}), 404
+    return send_from_directory(reg_dir, filename)
 
 
 @app.route("/api/registrations/<reg_id>", methods=["GET"])

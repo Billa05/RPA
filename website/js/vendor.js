@@ -99,7 +99,7 @@ async function loadDashStats() {
   try {
     const [events, regs] = await Promise.all([
       fetch(`${API}/vendor/events`, { headers: authHeaders() }).then(r => r.json()),
-      fetch(`${API}/applications`, { headers: authHeaders() }).then(r => r.json()).catch(() => []),
+      fetch(`${API}/vendor/events`, { headers: authHeaders() }).then(r => r.json()).catch(() => []),
     ]);
 
     let allRegs = [];
@@ -328,9 +328,21 @@ function openOverride(reg) {
     const isOk = d.status === 'verified';
     const row  = el('div', { cls: 'override-doc-item ' + (d.status || 'pending') });
     row.appendChild(icon(isOk ? 'fa-check-circle' : 'fa-times-circle'));
+
     const info = el('div', { style: 'flex:1' });
     info.appendChild(el('div', { style: 'font-weight:600;font-size:13px', text: d.name }));
     if (d.reason) info.appendChild(el('div', { style: 'font-size:12px;color:var(--red)', text: d.reason }));
+
+    // View document button — opens the uploaded file in a new tab
+    if (d.savedFile) {
+      const viewBtn = el('a', {
+        cls: 'btn btn-ghost btn-sm',
+        href: `${API}/registrations/${reg.id}/documents/${d.savedFile}`,
+        target: '_blank'
+      }, [icon('fa-eye'), ' View']);
+      info.appendChild(viewBtn);
+    }
+
     row.appendChild(info);
     if (d.confidence !== null && d.confidence !== undefined) {
       row.appendChild(el('span', { cls: 'badge ' + (isOk ? 'badge-green' : 'badge-red'), text: (d.confidence * 100).toFixed(0) + '%' }));
@@ -467,7 +479,7 @@ function fmtSize(b) {
   return (b / 1048576).toFixed(1) + ' MB';
 }
 
-async function createEvent() {
+async function submitNewEvent() {
   const name  = document.getElementById('ev-name').value.trim();
   const date  = document.getElementById('ev-date').value;
   const venue = document.getElementById('ev-venue').value.trim();

@@ -161,15 +161,103 @@ async function checkAttendance() {
       body: JSON.stringify({ name, idNumber: id })
     }).then(r => r.json());
 
-    if (res.found) {
-      toast('Welcome, ' + res.attendeeName + '! Attendance confirmed.', 'success');
-      buildUploadList();
-      goStep(2);
-    } else {
+    if (!res.found) {
       toast(res.reason || 'Not found in attendee list', 'error');
+      return;
     }
+
+    toast('Welcome, ' + res.attendeeName + '! Attendance confirmed.', 'success');
+
+    // Check if this person already has a registration
+    if (res.existingRegistration) {
+      const reg = res.existingRegistration;
+      currentRegId = reg.id;
+
+      if (reg.certificateReady) {
+        // Certificate is ready — skip straight to download
+        toast('Your certificate is ready! Jumping to download.', 'success');
+        goStep(4);
+        return;
+      }
+
+      if (['partial', 'failed'].includes(reg.verificationStatus) && !reg.vendorOverride) {
+        // Docs were checked but some failed — show results, start polling for vendor override
+        toast('You already submitted — showing your verification results.', 'info');
+        resumeVerificationView(reg);
+        goStep(3);
+        return;
+      }
+
+      if (reg.verificationStatus === 'verified' || reg.verificationStatus === 'approved') {
+        // All verified — go to cert
+        toast('All documents verified! Generating certificate.', 'success');
+        goStep(4);
+        return;
+      }
+
+      // Status is 'pending' — docs submitted but not verified yet, re-trigger verify
+      toast('Resuming your registration — re-verifying documents.', 'info');
+      const verify = await fetch(`${API}/registrations/${currentRegId}/verify`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }
+      }).then(r => r.json());
+      renderVerification(verify);
+      goStep(3);
+      return;
+    }
+
+    // No existing registration — normal flow: upload documents
+    buildUploadList();
+    goStep(2);
   } catch {
     toast('Cannot verify attendance. Is the backend running?', 'error');
+  }
+}
+
+// Resume the verification view for an existing registration (no re-upload)
+function resumeVerificationView(reg) {
+  const docs = reg.documents || [];
+  const passCount = docs.filter(d => d.status === 'verified').length;
+  const failCount = docs.filter(d => d.status === 'failed').length;
+
+  document.getElementById('pass-count').textContent = passCount;
+  document.getElementById('fail-count').textContent = failCount;
+
+  const container = document.getElementById('verify-results');
+  clear(container);
+
+  docs.forEach(d => {
+    const info = DOC_LABELS[d.key] || DOC_LABELS[d.docType] || { label: d.name, icon: 'fa-file' };
+    const isOk = d.status === 'verified';
+
+    const statusIcon = icon(isOk ? 'fa-check-circle' : 'fa-times-circle');
+    const iconWrap   = el('div', { cls: 'doc-result-icon' }, [statusIcon]);
+
+    const nameEl  = el('div', { cls: 'doc-result-name', text: info.label });
+    const infoDiv = el('div', { cls: 'doc-result-info' }, [nameEl]);
+    if (d.reason) {
+      const reasonEl = el('div', { cls: 'doc-result-reason' }, [icon('fa-exclamation-triangle'), ' ' + d.reason]);
+      infoDiv.appendChild(reasonEl);
+    }
+
+    const badge = el('span', { cls: 'badge ' + (isOk ? 'badge-green' : 'badge-red'), text: isOk ? 'Verified' : 'Failed' });
+    const conf  = el('div', { cls: 'doc-result-conf', text: d.confidence ? (d.confidence * 100).toFixed(0) + '% confidence' : '' });
+    const aside = el('div', {}, [badge, conf]);
+
+    const row = el('div', { cls: `doc-result ${d.status}` }, [iconWrap, infoDiv, aside]);
+    container.appendChild(row);
+  });
+
+  if (reg.certificateReady) {
+    document.getElementById('all-passed-msg').style.display   = '';
+    document.getElementById('some-failed-msg').style.display  = 'none';
+    document.getElementById('btn-get-cert').style.display     = '';
+    document.getElementById('btn-wait-vendor').style.display  = 'none';
+  } else {
+    document.getElementById('all-passed-msg').style.display   = 'none';
+    document.getElementById('some-failed-msg').style.display  = '';
+    document.getElementById('btn-get-cert').style.display     = 'none';
+    document.getElementById('btn-wait-vendor').style.display  = '';
+    startPolling();
   }
 }
 
@@ -265,10 +353,16 @@ async function submitAndVerify() {
   const docs = requiredDocs.map(dt => ({ key: dt, name: uploadedFiles[dt].name, docType: dt }));
 
   try {
+    // Send as multipart form with actual files
+    const formData = new FormData();
+    formData.append('data', JSON.stringify({ name, idNumber: id, documents: docs }));
+    requiredDocs.forEach(dt => {
+      if (uploadedFiles[dt]) formData.append(dt, uploadedFiles[dt]);
+    });
+
     const reg = await fetch(`${API}/events/${currentEvent.id}/register`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, idNumber: id, documents: docs })
+      body: formData
     }).then(r => r.json());
 
     if (reg.error) { toast(reg.error, 'error'); return; }
@@ -366,54 +460,43 @@ async function loadCertificate() {
 function printCert() {
   const preview = document.getElementById('cert-preview');
   const clone   = preview.cloneNode(true);
-  const win     = window.open('', '', 'width=800,height=700');
-  const doc     = win.document;
+  const win     = window.open('', '_blank', 'width=800,height=700');
 
-  const htmlEl  = doc.createElement('html');
-  const headEl  = doc.createElement('head');
-  const bodyEl  = doc.createElement('body');
-
-  const titleEl = doc.createElement('title');
-  titleEl.textContent = 'Certificate';
-  headEl.appendChild(titleEl);
-
-  const faLink  = doc.createElement('link');
-  faLink.rel    = 'stylesheet';
-  faLink.href   = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css';
-  headEl.appendChild(faLink);
-
-  const fontLink  = doc.createElement('link');
-  fontLink.rel    = 'stylesheet';
-  fontLink.href   = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap';
-  headEl.appendChild(fontLink);
-
-  const styleEl = doc.createElement('style');
-  styleEl.textContent = [
-    'body{margin:0;padding:40px;background:#f5f5fa;display:flex;justify-content:center;font-family:Inter,sans-serif}',
-    '.cert-paper{background:#fff;color:#1a1a2e;border-radius:14px;padding:48px;max-width:640px;width:100%;position:relative;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15)}',
-    '.cert-border{position:absolute;inset:12px;border:2px solid rgba(124,92,252,.15);border-radius:10px;pointer-events:none}',
+  const css = [
+    'body{margin:0;padding:40px;background:#fff;display:flex;justify-content:center;font-family:Inter,sans-serif}',
+    '.cert-paper{background:#fff;color:#1a1a2e;border-radius:0;padding:48px;max-width:640px;width:100%;position:relative;overflow:hidden}',
+    '.cert-border{position:absolute;inset:12px;border:2px solid rgba(124,92,252,.2);border-radius:10px;pointer-events:none}',
     '.cert-seal{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#7c5cfc,#6366f1);display:flex;align-items:center;justify-content:center;font-size:30px;color:#fff;margin:0 auto 16px}',
     '.cert-org{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:#888;text-align:center}',
     '.cert-title{font-size:28px;font-weight:800;text-align:center;color:#1a1a2e;margin:8px 0 4px}',
     '.cert-sub{font-size:13px;color:#999;text-align:center;margin-bottom:28px}',
     '.cert-body{font-size:15px;text-align:center;color:#333;line-height:1.8;margin-bottom:24px}',
     '.cert-body strong{color:#1a1a2e;font-size:18px}',
-    '.cert-divider{height:1px;background:#eee;margin:20px 0}',
+    '.cert-divider{height:1px;background:#ddd;margin:20px 0}',
     '.cert-footer{display:flex;justify-content:space-between;align-items:flex-end}',
-    '.cert-qr{width:72px;height:72px;background:#f5f5f5;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#bbb;font-size:32px}',
+    '.cert-qr{width:72px;height:72px;background:#f0f0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#aaa;font-size:32px}',
     '.cert-sig{text-align:right}',
     '.cert-sig-line{width:130px;height:1px;background:#333;margin-bottom:6px;margin-left:auto}',
     '.cert-sig-name{font-size:12px;color:#666}',
-    '.cert-hash{font-family:monospace;font-size:9px;color:#ccc;text-align:center;margin-top:16px;word-break:break-all}',
-  ].join('');
-  headEl.appendChild(styleEl);
+    '.cert-hash{font-family:monospace;font-size:9px;color:#bbb;text-align:center;margin-top:16px;word-break:break-all}',
+    '@media print{body{padding:20px;background:#fff}}',
+  ].join('\n');
 
-  bodyEl.appendChild(clone);
-  htmlEl.appendChild(headEl);
-  htmlEl.appendChild(bodyEl);
-  doc.appendChild(htmlEl);
-  doc.close();
-  setTimeout(() => win.print(), 700);
+  // Write a minimal HTML shell, then inject the certificate clone
+  const d = win.document;
+  d.open();
+  d.write('<!DOCTYPE html><html><head><title>Certificate</title>');
+  d.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">');
+  d.write('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap">');
+  d.write('<style>' + css + '</style>');
+  d.write('</head><body></body></html>');
+  d.close();
+
+  // Append the cloned certificate into the body
+  d.body.appendChild(clone);
+
+  // Wait for fonts + icons to load, then trigger print
+  setTimeout(function() { win.print(); }, 1200);
 }
 
 // Init
